@@ -73,5 +73,5 @@ yesButton.addEventListener("click", function () {
 
 // 返回按钮点击事件
 backButton.addEventListener("click", function () {
-    window.location.href = "./index.html";
+    window.location.href = "./index.html?skipIntro=1";
 });

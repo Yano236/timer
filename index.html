@@ -512,6 +512,7 @@
             const gallery = document.getElementById("images-gallery");
             const columns = document.querySelectorAll(".column");
             const loadingScreen = document.getElementById("loading-screen");
+            const shouldSkipIntro = new URLSearchParams(window.location.search).get("skipIntro") === "1";
 
             let scrollSpeed = 0.7; // 控制滚动速度
             let scrollPosition = 0; // 记录当前滚动位置
@@ -720,8 +721,14 @@
                     });
                 }
                 
-                // 开始模拟加载
-                simulateLoading();
+                if (shouldSkipIntro) {
+                    loadingScreen.classList.add("hidden");
+                    isLoaded = true;
+                    requestAnimationFrame(autoScroll);
+                } else {
+                    // 开始模拟加载
+                    simulateLoading();
+                }
             }
 
             // **2. 检查每个 column 是否触底**
