@@ -467,7 +467,7 @@
 <body>
     <nav class="navbar">
         <div class="logo">
-            <img src="./images2/image.png" alt="Logo" class="logo-img">
+            <img src="./images2/logo.png" alt="Logo" class="logo-img">
             <span>Always Love YSM</span>
         </div>
         <div class="nav-links">
@@ -610,10 +610,23 @@
                 "./images/photo13.jpg",
             ];
 
-            // **工具函数：随机获取图片**
-            function getRandomImage() {
-                const randomIndex = Math.floor(Math.random() * photoUrls.length);
-                return photoUrls[randomIndex];
+            // **工具函数：随机获取图片，尽量避开同一行和相邻位置的重复**
+            function getRandomImage(exclude = []) {
+                const blocked = new Set(exclude.filter(Boolean));
+                const candidates = photoUrls.filter((url) => !blocked.has(url));
+                const pool = candidates.length ? candidates : photoUrls;
+                const randomIndex = Math.floor(Math.random() * pool.length);
+                return pool[randomIndex];
+            }
+
+            function getColumnImages(column) {
+                return Array.from(column.querySelectorAll("img")).map((img) => img.dataset.photoSrc || img.src.split("?")[0]);
+            }
+
+            function setGalleryImage(img, photoUrl) {
+                img.dataset.photoSrc = photoUrl;
+                img.src = photoUrl + '?x-oss-process=image/resize,p_20';
+                img.alt = "img";
             }
 
             // **更新加载文本**
@@ -692,16 +705,20 @@
 
             // **1. 初始化，每个 column 先填充 8 张图片**
             function initializeGallery() {
-                columns.forEach((column) => {
-                    for (let i = 0; i < 8; i++) {
+                for (let row = 0; row < 8; row++) {
+                    const usedInRow = [];
+                    columns.forEach((column) => {
                         const newDiv = document.createElement("div");
                         const newImg = document.createElement("img");
-                        newImg.src = getRandomImage() + '?x-oss-process=image/resize,p_20';
-                        newImg.alt = "img";
+                        const columnImages = getColumnImages(column);
+                        const previousInColumn = columnImages[columnImages.length - 1];
+                        const photoUrl = getRandomImage([...usedInRow, previousInColumn]);
+                        usedInRow.push(photoUrl);
+                        setGalleryImage(newImg, photoUrl);
                         newDiv.appendChild(newImg);
                         column.appendChild(newDiv);
-                    }
-                });
+                    });
+                }
                 
                 // 开始模拟加载
                 simulateLoading();
@@ -723,8 +740,14 @@
             function addNewImageToColumn(column) {
                 const newDiv = document.createElement("div");
                 const newImg = document.createElement("img");
-                newImg.src = getRandomImage() + '?x-oss-process=image/resize,p_20';
-                newImg.alt = "img";
+                const rowIndex = column.children.length;
+                const sameRowImages = Array.from(columns)
+                    .filter((otherColumn) => otherColumn !== column)
+                    .map((otherColumn) => otherColumn.children[rowIndex]?.querySelector("img")?.dataset.photoSrc);
+                const columnImages = getColumnImages(column);
+                const previousInColumn = columnImages[columnImages.length - 1];
+                const photoUrl = getRandomImage([...sameRowImages, previousInColumn]);
+                setGalleryImage(newImg, photoUrl);
                 newDiv.appendChild(newImg);
                 column.appendChild(newDiv);
             }
