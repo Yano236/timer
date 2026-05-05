@@ -312,7 +312,7 @@
     <section class="card" aria-labelledby="title">
       <h1 class="birthday-title" id="title">🎂生日倒计时🎂</h1>
       <div class="birthday-girl">YSM</div>
-      <p class="target-text" id="untilText">目标：5月6日 00:00</p>
+      <p class="target-text" id="untilText">目标：--</p>
 
       <div class="timer" aria-live="polite" aria-atomic="true">
         <div class="unit">
@@ -335,7 +335,7 @@
       </div>
 
       <div class="message-container">
-        <div class="message" id="message">愿每一年的 5 月 6 日的每一秒，都离你的笑容更近一点。</div>
+        <div class="message" id="message"></div>
       </div>
 
     </section>
@@ -349,12 +349,20 @@
     const elSeconds = document.getElementById('seconds');
     const elUntil = document.getElementById('untilText');
     const elAnnounce = document.getElementById('srAnnouncer');
-    const STORAGE_KEY = 'birthday_countdown_target_v4';
-    const BIRTHDAY_MONTH = 4;
-    const BIRTHDAY_DATE = 6;
+    const elMessage = document.getElementById('message');
+    const BIRTHDAY = {
+      month: 5,
+      date: 6,
+      hour: 0,
+      minute: 0,
+      storageKey: 'birthday_countdown_target_05_06'
+    };
+
+    const birthdayMonthIndex = BIRTHDAY.month - 1;
+    const birthdayLabel = `${BIRTHDAY.month}月${BIRTHDAY.date}日`;
 
     function isBirthday(date = new Date()) {
-      return date.getMonth() === BIRTHDAY_MONTH && date.getDate() === BIRTHDAY_DATE;
+      return date.getMonth() === birthdayMonthIndex && date.getDate() === BIRTHDAY.date;
     }
 
     if (isBirthday()) {
@@ -363,19 +371,19 @@
 
     function getBirthdayTarget() {
       const now = new Date();
-      let target = new Date(now.getFullYear(), BIRTHDAY_MONTH, BIRTHDAY_DATE, 0, 0, 0);
+      let target = new Date(now.getFullYear(), birthdayMonthIndex, BIRTHDAY.date, BIRTHDAY.hour, BIRTHDAY.minute, 0);
       if (now >= target) {
-        target = new Date(now.getFullYear() + 1, BIRTHDAY_MONTH, BIRTHDAY_DATE, 0, 0, 0);
+        target = new Date(now.getFullYear() + 1, birthdayMonthIndex, BIRTHDAY.date, BIRTHDAY.hour, BIRTHDAY.minute, 0);
       }
       return target;
     }
 
     function formatTarget(d) {
-      return `${d.getFullYear()}年5月5日 00:00`;
+      return `${d.getFullYear()}年${birthdayLabel} ${pad2(BIRTHDAY.hour)}:${pad2(BIRTHDAY.minute)}`;
     }
 
     function loadTarget() {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(BIRTHDAY.storageKey);
       if (saved) {
         const savedDate = new Date(saved);
         if (!Number.isNaN(+savedDate) && savedDate > new Date()) {
@@ -383,9 +391,11 @@
         }
       }
       const target = getBirthdayTarget();
-      localStorage.setItem(STORAGE_KEY, target.toISOString());
+      localStorage.setItem(BIRTHDAY.storageKey, target.toISOString());
       return target;
     }
+
+    elMessage.textContent = `愿每一年的 ${birthdayLabel} 的每一秒，都离你的笑容更近一点。`;
 
     let target = loadTarget();
     let lastAnnounced = '';
