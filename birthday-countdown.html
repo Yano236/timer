@@ -295,16 +295,18 @@
     const btnApply = $('#applyBtn'), btnReset = $('#resetBtn');
 
     // ---- 状态与存储 ----
-    const STORAGE_KEY = 'ios_countdown_state_v1';
+    const STORAGE_KEY = 'ios_countdown_state_v2';
     const defaultTarget = (() => {
-      // 默认：今年或明年的 12-31 23:59
+      // 默认：今年或明年的 05-06 00:00
       const now = new Date();
-      const year = now.getMonth() === 11 && now.getDate() === 31 ? now.getFullYear()+1 : now.getFullYear();
-      return new Date(year, 11, 31, 23, 59, 59);
+      const year = now.getMonth() > 4 || (now.getMonth() === 4 && now.getDate() > 6)
+        ? now.getFullYear() + 1
+        : now.getFullYear();
+      return new Date(year, 4, 6, 0, 0, 0);
     })();
     let state = {
-      name: '倒计时',
-      emoji: '⏳',
+      name: '生日倒计时',
+      emoji: '🎂',
       targetISO: defaultTarget.toISOString()
     };
 
@@ -402,7 +404,7 @@
     });
 
     btnReset.addEventListener('click', ()=>{
-      state = { name:'倒计时', emoji:'⏳', targetISO: defaultTarget.toISOString() };
+      state = { name:'生日倒计时', emoji:'🎂', targetISO: defaultTarget.toISOString() };
       save();
       load();
       tick();
