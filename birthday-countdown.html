@@ -207,31 +207,6 @@
       white-space: pre-line;
     }
 
-    .actions {
-      display: flex;
-      justify-content: center;
-      gap: 14px;
-      flex-wrap: wrap;
-      margin-top: 24px;
-    }
-
-    .btn {
-      border: none;
-      cursor: pointer;
-      padding: 12px 24px;
-      border-radius: 30px;
-      font-weight: 700;
-      color: #fff;
-      background: var(--primary);
-      box-shadow: 0 6px 18px rgba(255, 59, 141, 0.3);
-      transition: transform 0.2s ease, background 0.2s ease;
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-      background: var(--dark);
-    }
-
     .sr-only {
       position: absolute;
       width: 1px;
@@ -363,9 +338,6 @@
         <div class="message" id="message">愿 5 月 6 日的每一秒，都离你的笑容更近一点。</div>
       </div>
 
-      <div class="actions">
-        <button class="btn" id="resetBtn" type="button">重置为 5 月 6 日</button>
-      </div>
     </section>
   </main>
 
@@ -377,7 +349,6 @@
     const elSeconds = document.getElementById('seconds');
     const elUntil = document.getElementById('untilText');
     const elAnnounce = document.getElementById('srAnnouncer');
-    const resetBtn = document.getElementById('resetBtn');
     const STORAGE_KEY = 'birthday_countdown_target_v3';
 
     function getBirthdayTarget() {
@@ -430,12 +401,6 @@
         elAnnounce.textContent = `生日倒计时剩余 ${days} 天 ${hours} 小时 ${minutes} 分钟 ${seconds} 秒`;
       }
     }
-
-    resetBtn.addEventListener('click', () => {
-      target = getBirthdayTarget();
-      localStorage.setItem(STORAGE_KEY, target.toISOString());
-      render();
-    });
 
     function createFloatingHearts() {
       const container = document.getElementById('heartsContainer');
