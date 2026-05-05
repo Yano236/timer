@@ -1,8 +1,745 @@
-<p>Hello 大家好</p>
-<p>我是霸都丶傲天，这是我的个人网站。 </p>
-<p>很高兴你来到这里, 你可以在以下的网站找到我</p>
+<!DOCTYPE html>
+<html>
 
-<ul>
-  <li> <a href="https://www.zhihu.com/people/AJLoveChina">知乎</a> </li>
-  <li> <a href="http://hejie.nigeerhuo.com">我的博客(已经不更细了,现在在知乎写文章)</a> </li>
-</ul>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Always Love YSM</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Dancing+Script:wght@700&family=Poppins&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="fliptimer/fliptimer.css">
+    <script type="text/javascript" src="fliptimer/fliptimer.js"></script>
+    <style>
+        /* 原CSS文件内容开始 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* 全屏 Loading 遮罩 */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            /* 纯白背景 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            font-size: 2rem;
+            font-weight: bold;
+            color: black;
+            z-index: 9999;
+            transition: opacity 1s ease-out, visibility 1s ease-out;
+        }
+
+        /* 隐藏 loading 画面 */
+        #loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* 包裹容器 */
+        .loading-content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 调整canvas大小 - 占1/4屏幕 */
+        #heartCanvas {
+            width: 1500px;
+            height: 1500px;
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        /* 加载文字容器 */
+        .loading-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 100%;
+        }
+
+        /* 主标题文字 - 使用更浪漫的手写字体 */
+        .main-text {
+            font-family: 'Dancing Script', 'Pacifico', cursive;
+            font-size: 2.2rem;
+            color: #000;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
+            letter-spacing: 1px;
+        }
+
+        /* 进度文字 */
+        .progress-text {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            color: #000;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        /* 爱心爆炸动画粒子 */
+        .heart-explosion {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #ff3b8d;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        @keyframes explode {
+            0% {
+                transform: translate(0, 0) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Loading 文字 */
+        .loading-text {
+            text-align: center;
+        }
+
+        /* 添加白色蒙版 */
+        section::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+
+        /* 居中文字 */
+        .overlay-div {
+            width: 100%;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgb(255, 255, 255);
+            z-index: 2;
+            text-align: center;
+            vertical-align: middle;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .overlay-text {
+            font-weight: bold;
+            font-size: 5vw;
+        }
+
+        .small-font {
+            font-size: 2vw;
+        }
+
+        section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        section {
+            width: 100%;
+            /* margin: 3vw auto; */
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 3vw;
+            font-size: 3vw;
+            text-transform: capitalize;
+        }
+
+        .images-gallery {
+            display: flex;
+            align-items: flex-start;
+            /* 让列的高度根据内容变化 */
+            overflow: hidden;
+            /* 隐藏滚动条 */
+            height: 100vh;
+        }
+
+        .column {
+            flex-grow: 1;
+            width: 33.3333%;
+        }
+
+        .column img {
+            width: 100%;
+            display: block;
+        }
+
+        .column:nth-child(odd) {
+            padding-right: 0.1vw;
+            padding-left: 0.1vw;
+        }
+
+        .column div {
+            margin-top: 0.1vw;
+            margin-bottom: 0.1vw;
+        }
+
+        @media screen and (max-width: 768px) {
+            .overlay-text {
+                font-size: 7vw;
+            }
+            #heartCanvas {
+                width: 300px;
+                height: 300px;
+            }
+            .main-text {
+                font-size: 1.6rem;
+            }
+            .progress-text {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media screen and (max-width: 576px) {
+            .overlay-text {
+                font-size: 8vw;
+            }
+            #heartCanvas {
+                width: 250px;
+                height: 250px;
+            }
+            .main-text {
+                font-size: 1.4rem;
+            }
+            .progress-text {
+                font-size: 1rem;
+            }
+        }
+        /* 原CSS文件内容结束 */
+
+        /* 原HTML中的style内容 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+        
+        :root {
+            --primary: #ff3b8d;
+            --secondary: #ff8cc6;
+            --dark: #6d0039;
+            --light: #fff9fb;
+            --nav-height: 70px;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #ffd8e9, #ffeef5);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* 导航栏样式 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: var(--dark);
+        }
+        
+        .logo-img {
+            height: 45px;
+            width: auto;
+            border-radius: 8px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-link {
+            text-decoration: none;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 500;
+            color: var(--dark);
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* 主内容区 */
+        .container {
+            padding-top: var(--nav-height);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        #mainImage {
+            width: 180px;
+            height: 180px;
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 10px 20px rgba(255, 59, 141, 0.4));
+        }
+        
+        h1 {
+            color: var(--dark);
+            font-size: 2.8rem;
+            margin-bottom: 40px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 15px 40px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        #yes {
+            background: var(--primary);
+            color: white;
+        }
+        
+        #yes:hover {
+            background: var(--dark);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(255, 59, 141, 0.5);
+        }
+        
+        #no {
+            background: #f5f5f5;
+            color: #666;
+        }
+        
+        #no:hover {
+            background: #e0e0e0;
+            transform: translateY(-5px);
+        }
+        
+        /* 动画效果 */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0 20px;
+            }
+            
+            .nav-links {
+                gap: 8px;
+            }
+            
+            .nav-link {
+                padding: 6px 12px;
+                font-size: 0.9rem;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            #mainImage {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .buttons {
+                gap: 20px;
+            }
+            
+            button {
+                padding: 12px 30px;
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo span {
+                display: none;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            #mainImage {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .buttons {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <img src="./images2/logo.png" alt="Logo" class="logo-img">
+            <span>Always Love YSM</span>
+        </div>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link active">首页</a>
+            <a href="game.html" class="nav-link">互动小游戏</a>
+            <a href="heart.html" class="nav-link">Ari的心脏直播秀</a>
+            <a href="birthday-countdown.html" class="nav-link">生日倒计时</a>
+        </div>
+    </nav>
+
+    <div id="loading-screen">
+        <div class="loading-content">
+            <canvas id="heartCanvas"></canvas>
+            <div class="loading-text">
+                <div class="main-text">编织爱的每一刻...</div>
+                <div id="progress-text" class="progress-text">加载中... 0%</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay-div">
+        <div class="overlay-text">我们相恋了🥰</div>
+        <div id="fliptimer" class="fliptimer"></div>
+    </div>
+
+    <section>
+        <div class="images-gallery" id="images-gallery">
+            <div class="column"></div>
+            <div class="column"></div>
+            <div class="column"></div>
+        </div>
+    </section>
+    <script src="./urls.js"></script>
+
+    <script>
+        var startTime = new Date("2025-08-12T22:00:00").getTime() / 1000 - 86400; // 目标时间
+        let body = document.body;
+        var flipdown = new FlipTimer(startTime).start()
+        body.querySelector('#fliptimer').classList.toggle('fliptimer__theme-light');
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const gallery = document.getElementById("images-gallery");
+            const columns = document.querySelectorAll(".column");
+            const loadingScreen = document.getElementById("loading-screen");
+
+            let scrollSpeed = 0.7; // 控制滚动速度
+            let scrollPosition = 0; // 记录当前滚动位置
+            let isLoaded = false; // **是否加载完成**
+
+            // 获取 Canvas
+            const canvas = document.getElementById("heartCanvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = 500;  // 增大到500px
+            canvas.height = 500; // 增大到500px
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            const particles = [];
+            const particleCount = 300; // 减少粒子数量，增加间距
+            let progressPercent = 0; // 进度条（0~100）
+
+            // 更大的爱心函数
+            function heartFunction(t) {
+                return {
+                    x: centerX + 40 * Math.pow(Math.sin(t), 3),  // 增大比例
+                    y: centerY - (32 * Math.cos(t) - 12 * Math.cos(2*t) - 6 * Math.cos(3*t) - 2 * Math.cos(4*t))  // 增大比例
+                };
+            }
+            
+            // 创建粒子 - 增加粒子间距
+            function createParticles() {
+                for (let i = 0; i < particleCount; i++) {
+                    let t = (Math.PI * 2 * i) / particleCount;
+                    // 跳过一些点来增加间距
+                    if (i % 3 !== 0) continue; // 每3个点取1个
+                    let pos = heartFunction(t);
+                    particles.push({
+                        x: pos.x,
+                        y: pos.y,
+                        originalX: pos.x,
+                        originalY: pos.y,
+                        size: Math.random() * 6 + 4,  // 增大粒子尺寸
+                        alpha: 0,
+                        color: `hsl(${Math.random() * 60 + 320}, 100%, 60%)`
+                    });
+                }
+            }
+            
+            // 绘制粒子
+            function drawParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach((p, index) => {
+                    if (index / particles.length < progressPercent / 100) {
+                        p.alpha = Math.min(p.alpha + 0.02, 1);
+                    }
+                    
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                
+                // 绘制中心爱心轮廓
+                ctx.globalAlpha = 0.3;
+                ctx.strokeStyle = '#ff3b8d';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                
+                for (let t = 0; t <= Math.PI * 2; t += 0.01) {
+                    const pos = heartFunction(t);
+                    if (t === 0) {
+                        ctx.moveTo(pos.x, pos.y);
+                    } else {
+                        ctx.lineTo(pos.x, pos.y);
+                    }
+                }
+                
+                ctx.closePath();
+                ctx.stroke();
+                
+                ctx.globalAlpha = 1.0;
+            }
+
+            const photoUrls = [
+                "./images/photo1.png",
+                "./images/photo2.png",
+                "./images/photo3.jpg",
+                "./images/photo4.png",
+                "./images/photo5.png",
+            ];
+
+            // **工具函数：随机获取图片**
+            function getRandomImage() {
+                const randomIndex = Math.floor(Math.random() * photoUrls.length);
+                return photoUrls[randomIndex];
+            }
+
+            // **更新加载文本**
+            function updateLoadingText(percent) {
+                const progressText = document.getElementById("progress-text");
+                if (progressText) {
+                    progressText.textContent = `加载中... ${percent}%`;
+                }
+                
+                // 更新粒子显示进度
+                progressPercent = percent;
+                drawParticles();
+            }
+
+            // 固定时间加载逻辑
+            let loadingStartTime = Date.now();
+            const loadingDuration = 2500; // 固定1.5秒
+
+            // 模拟加载进度
+            function simulateLoading() {
+                const elapsed = Date.now() - loadingStartTime;
+                const progress = Math.min(100, Math.floor((elapsed / loadingDuration) * 100));
+                
+                updateLoadingText(progress);
+                
+                if (elapsed < loadingDuration) {
+                    setTimeout(simulateLoading, 16); // 约60fps
+                } else {
+                    // 加载完成
+                    updateLoadingText(100);
+                    setTimeout(() => {
+                        playHeartExplosion();
+                        setTimeout(() => {
+                            loadingScreen.classList.add("hidden");
+                            isLoaded = true;
+                            requestAnimationFrame(autoScroll);
+                        }, 800); // 等待爆炸动画完成
+                    }, 300);
+                }
+            }
+
+            // 爱心爆炸动画函数
+            function playHeartExplosion() {
+                const particleCount = 60;
+                const container = document.getElementById("loading-screen");
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement("div");
+                    particle.className = "heart-explosion";
+                    
+                    // 随机方向和距离
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 100 + Math.random() * 150;
+                    const tx = Math.cos(angle) * distance;
+                    const ty = Math.sin(angle) * distance;
+                    
+                    particle.style.setProperty('--tx', `${tx}px`);
+                    particle.style.setProperty('--ty', `${ty}px`);
+                    particle.style.left = `${centerX}px`;
+                    particle.style.top = `${centerY}px`;
+                    particle.style.backgroundColor = `hsl(${330 + Math.random() * 20}, 100%, 60%)`;
+                    particle.style.animation = `explode 0.8s ease-out forwards`;
+                    particle.style.width = '12px';
+                    particle.style.height = '12px';
+                    
+                    container.appendChild(particle);
+                    
+                    // 动画结束后移除元素
+                    setTimeout(() => {
+                        particle.remove();
+                    }, 800);
+                }
+            }
+
+            // **1. 初始化，每个 column 先填充 8 张图片**
+            function initializeGallery() {
+                columns.forEach((column) => {
+                    for (let i = 0; i < 8; i++) {
+                        const newDiv = document.createElement("div");
+                        const newImg = document.createElement("img");
+                        newImg.src = getRandomImage() + '?x-oss-process=image/resize,p_20';
+                        newImg.alt = "img";
+                        newDiv.appendChild(newImg);
+                        column.appendChild(newDiv);
+                    }
+                });
+                
+                // 开始模拟加载
+                simulateLoading();
+            }
+
+            // **2. 检查每个 column 是否触底**
+            function checkColumns() {
+                columns.forEach((column) => {
+                    const rect = column.getBoundingClientRect();
+                    const windowHeight = window.innerHeight;
+
+                    if (rect.bottom < windowHeight + windowHeight / 2) {
+                        addNewImageToColumn(column);
+                    }
+                });
+            }
+
+            // **3. 只给触底的 column 添加图片**
+            function addNewImageToColumn(column) {
+                const newDiv = document.createElement("div");
+                const newImg = document.createElement("img");
+                newImg.src = getRandomImage() + '?x-oss-process=image/resize,p_20';
+                newImg.alt = "img";
+                newDiv.appendChild(newImg);
+                column.appendChild(newDiv);
+            }
+
+            // **4. 自动滚动**
+            function autoScroll() {
+                if (!isLoaded) return; // **未加载完成前不滚动**
+
+                checkColumns(); // 每帧检查是否有列触底
+
+                scrollPosition += scrollSpeed;
+                gallery.scrollTop = scrollPosition;
+
+                requestAnimationFrame(autoScroll);
+            }
+
+            createParticles(); // 创建粒子
+            initializeGallery(); // 开始加载图片
+            drawParticles(); // 先绘制空白爱心
+
+            requestAnimationFrame(autoScroll);
+        });
+    </script>
+</body>
+
+</html>

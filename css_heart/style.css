@@ -1,0 +1,74 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+body {
+  background: #ff5555;
+  overflow: hidden;
+  margin: 0;
+  /* background-color: #000 !important; */
+}
+/**
+* 主容器
+*/
+div#main {
+  width: 100vw;
+  height: 100vh;
+}
+
+/**
+* 设置无限的动效
+* 单次动效时间3s
+*/
+
+heart {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    color: #FFF;
+    background: url('heart.png') no-repeat center center;
+    background-size: contain;
+    opacity: 1; /* 初始不透明 */
+    will-change: opacity; /* 优化动画性能 */
+}
+
+/**
+* 用伪类在heart  content即是展示的文字效果
+*/
+heart::before {
+  position: absolute;
+  content: 'Miss You, YSM';
+  width: 200px;
+  height: 20px;
+  /* background: #e74c3c; */
+  border-radius: 50%;
+  transform: translateX(-10px);
+}
+
+/**
+*用伪类在heart
+*/
+
+heart::after {
+  position: absolute;
+  content: '';
+  width: 20px;
+  height: 20px;
+  /* background: #e74c3c; */
+  border-radius: 50%;
+  transform: translateY(-10px);
+}
+
+/**
+* 改变透明度
+*/
+@keyframes opacity {
+  25%,
+  75% {
+      opacity: 1;
+  }
+  50%,
+  100% {
+      opacity: .5;
+  }
+}
