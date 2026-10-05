@@ -51,7 +51,7 @@
             color: #5e1230;
             z-index: 9999;
             overflow: hidden;
-            /* 最后 0.3 秒淡出，包含在固定的 1.5 秒开场中。 */
+            /* 最后 0.3 秒淡出，包含在固定的 3 秒开场中。 */
             transition: opacity 0.3s ease-out, visibility 0.3s ease-out, transform 0.3s ease-out;
         }
 
@@ -642,7 +642,7 @@
             let photosSettled = 0;
             let photosLoaded = 0;
             let loadingStartTime = performance.now();
-            const loadingDuration = 1500; // 固定开场时长，不等待照片网络请求
+            const loadingDuration = 3000; // 固定开场时长，不等待照片网络请求
             const introFadeDuration = 300; // 淡出也计入开场时长
 
             const blockColors = [
