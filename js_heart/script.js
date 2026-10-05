@@ -36,18 +36,26 @@ let heart = null;
 let sampler = null;
 let originHeart = null;
 // 本地生成立体爱心（原先从 codepen 加载 OBJ，被跨域拦截导致心脏不显示）
-function createHeartGeometry(uSegments = 96, vSegments = 48) {
+function smoothstep(edge0, edge1, x) {
+  const t = Math.min(Math.max((x - edge0) / (edge1 - edge0), 0), 1);
+  return t * t * (3 - 2 * t);
+}
+
+function createHeartGeometry(uSegments = 128, vSegments = 64) {
   const vertices = [];
   const indices = [];
+  const depth = 7; // 前后最大厚度
   for (let j = 0; j <= vSegments; j++) {
-    const v = -Math.PI / 2 + (j / vSegments) * Math.PI; // 前后方向
-    const s = Math.sqrt(Math.cos(v)); // 轮廓向中心收拢，开根号让表面更饱满
-    const z = Math.sin(v) * 7;
+    const t = Math.sin(-Math.PI / 2 + (j / vSegments) * Math.PI); // 前后位置 -1 ~ 1
     for (let i = 0; i <= uSegments; i++) {
       const u = (i / uSegments) * Math.PI * 2; // 经典爱心曲线
       const x = 16 * Math.pow(Math.sin(u), 3);
       const y = 13 * Math.cos(u) - 5 * Math.cos(2 * u) - 2 * Math.cos(3 * u) - Math.cos(4 * u);
-      vertices.push(x * s, (y + 2.5) * s, z);
+      // 截面形状：靠近底尖用菱形（轮廓随厚度线性收拢，任何角度看都汇成一点），往上过渡到圆形（饱满）
+      const tipDistance = Math.abs(u - Math.PI) / Math.PI; // 0 = 底尖，1 = 顶部凹口
+      const q = 1 + smoothstep(0.1, 0.45, tipDistance);
+      const s = Math.pow(1 - Math.pow(Math.abs(t), q), 1 / q);
+      vertices.push(x * s, (y + 2.5) * s, t * depth);
     }
   }
   for (let j = 0; j < vSegments; j++) {

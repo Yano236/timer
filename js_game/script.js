@@ -1,13 +1,13 @@
 let yesButton = document.getElementById("yes");
 let noButton = document.getElementById("no");
-let questionText = document.getElementById("question");
 let mainImage = document.getElementById("mainImage");
 let backButton = document.getElementById("backButton"); // 获取返回按钮
 
 let clickCount = 0;  // 记录点击 No 的次数
-const YES_GROW_CLICKS = 3; // 前几次点击 Yes 整体变大，之后只变长
+const YES_GROW_CLICKS = 3; // 前几次点击 Yes 整体变大，之后铺满一行只加高
+const YES_HEIGHT_STEP = 50; // 后期每次加高 px
 let yesBaseFontSize = null;
-let yesGrownWidth = null;
+let yesTargetHeight = null; // 记住目标高度，快速连点时不受过渡动画中间值影响
 
 // No 按钮的文字变化
 const noTexts = [
@@ -18,49 +18,33 @@ const noTexts = [
     "不行:("
 ];
 
-// 挤压 No 按钮，每次右移 50px，但不移出屏幕（按去掉偏移后的原位计算可移动距离）
-function placeNoButton() {
-    let currentOffset = new DOMMatrix(getComputedStyle(noButton).transform).m41;
-    let baseRight = noButton.getBoundingClientRect().right - currentOffset;
-    let maxOffset = Math.max(0, window.innerWidth - 8 - baseRight);
-    let noOffset = Math.min(clickCount * 50, maxOffset);
-    noButton.style.transform = `translateX(${noOffset}px)`;
-}
-
-// Yes 变大的过渡动画结束后布局才稳定（电脑端会把 No 往右推），再校正一次
-yesButton.addEventListener("transitionend", placeNoButton);
-
-// No 按钮点击事件
-noButton.addEventListener("click", function () {
-    clickCount++;
-
-    // 让 Yes 变大：前几次整体放大字号，之后只加宽（改真实尺寸，会把 No 挤开而不是盖住它）
+// 让 Yes 变大：改真实尺寸，上下排列时靠高度把 No 往下推（No 自身不做任何平移）
+function growYesButton() {
     if (yesBaseFontSize === null) {
         yesBaseFontSize = parseFloat(getComputedStyle(yesButton).fontSize);
     }
     if (clickCount <= YES_GROW_CLICKS) {
         yesButton.style.fontSize = `${yesBaseFontSize * (1 + clickCount * 0.4)}px`;
-    } else {
-        if (yesGrownWidth === null) {
-            yesGrownWidth = yesButton.getBoundingClientRect().width;
-        }
-        let isStacked = getComputedStyle(yesButton.parentElement).flexDirection === "column";
-        let maxWidth = isStacked ? yesButton.parentElement.clientWidth - 20 : window.innerWidth * 0.5;
-        let width = Math.min(yesGrownWidth + (clickCount - YES_GROW_CLICKS) * 60, maxWidth);
-        yesButton.style.width = `${width}px`;
+        return;
     }
+    // 整体高度 = 其余部分 + Yes 高度（同一时刻测量，过渡动画中也成立）；保证整体不超出屏幕
+    let yesHeight = yesButton.getBoundingClientRect().height;
+    let restHeight = document.querySelector(".container").getBoundingClientRect().height - yesHeight;
+    let maxHeight = Math.max(yesHeight, window.innerHeight - 32 - restHeight);
+    yesTargetHeight = Math.min((yesTargetHeight ?? yesHeight) + YES_HEIGHT_STEP, maxHeight);
+    yesButton.style.width = `${yesButton.parentElement.clientWidth - 20}px`;
+    yesButton.style.height = `${yesTargetHeight}px`;
+}
 
-    // 让图片和文字往上移动
-    let moveUp = clickCount * 25; // 每次上移 20px
-    mainImage.style.transform = `translateY(-${moveUp}px)`;
-    questionText.style.transform = `translateY(-${moveUp}px)`;
+// No 按钮点击事件
+noButton.addEventListener("click", function () {
+    clickCount++;
+    growYesButton();
 
     // No 文案变化（前 5 次变化）
     if (clickCount <= 5) {
         noButton.innerText = noTexts[clickCount - 1];
     }
-
-    placeNoButton();
 
     // 图片变化（前 5 次变化）
     if (clickCount === 1) mainImage.src = "./images3/shocked.png";  
