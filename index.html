@@ -51,7 +51,8 @@
             color: #5e1230;
             z-index: 9999;
             overflow: hidden;
-            transition: opacity 0.9s ease-out, visibility 0.9s ease-out, transform 0.9s ease-out;
+            /* 最后 0.3 秒淡出，包含在固定的 1.5 秒开场中。 */
+            transition: opacity 0.3s ease-out, visibility 0.3s ease-out, transform 0.3s ease-out;
         }
 
         #loading-screen::before,
@@ -592,7 +593,7 @@
             <canvas id="palaceCanvas" aria-hidden="true"></canvas>
             <div class="loading-text">
                 <div class="main-text">金博的记忆宫殿搭建中...</div>
-                <div id="progress-text" class="progress-text" role="status">收藏回忆中... 0%</div>
+                <div id="progress-text" class="progress-text" role="status">搭建宫殿中... 0%</div>
             </div>
         </div>
     </div>
@@ -624,7 +625,7 @@
             const scrollSpeed = isMobileViewport ? 18 : 42; // px/s
             let scrollPosition = 0; // 记录当前滚动位置
             let lastScrollTime = null;
-            let isLoaded = false; // **是否加载完成**
+            let isLoaded = false; // 是否已进入首页
 
             const canvas = document.getElementById("palaceCanvas");
             const ctx = canvas.getContext("2d");
@@ -640,9 +641,9 @@
             let isIntroAnimating = !shouldSkipIntro;
             let photosSettled = 0;
             let photosLoaded = 0;
-            let photosReady = false;
             let loadingStartTime = performance.now();
-            const loadingDuration = 3200;
+            const loadingDuration = 1500; // 固定开场时长，不等待照片网络请求
+            const introFadeDuration = 300; // 淡出也计入开场时长
 
             const blockColors = [
                 { front: "#dba1ad", top: "#efbec8", side: "#bd7e8c" },
@@ -745,26 +746,22 @@
 
             function renderIntro() {
                 if (!isIntroAnimating) return;
-                const timeProgress = Math.min(1, (performance.now() - loadingStartTime) / loadingDuration);
-                const assetProgress = photosSettled / photoUrls.length;
-                const targetProgress = Math.min(timeProgress, assetProgress);
-                progressValue += (targetProgress - progressValue) * 0.12;
+                progressValue = Math.min(1, (performance.now() - loadingStartTime) / (loadingDuration - introFadeDuration));
                 updateLoadingText(Math.floor(progressValue * 100));
                 drawPalace();
-                if (!photosReady || timeProgress < 1 || progressValue < 0.995) {
+                if (progressValue < 1) {
                     requestAnimationFrame(renderIntro);
                     return;
                 }
+                finishIntro();
+            }
+
+            function finishIntro() {
+                if (!isIntroAnimating) return;
                 progressValue = 1;
                 updateLoadingText(100);
                 drawPalace();
-                if (photosLoaded === 0) {
-                    isIntroAnimating = false;
-                    document.getElementById("progress-text").textContent = "照片暂未加载成功，请刷新重试";
-                    return;
-                }
-                isIntroAnimating = false;
-                setTimeout(revealGallery, reducedMotion ? 0 : 450);
+                revealGallery();
             }
 
             // 照片高宽比（images/photo1.jpg ~ photoN.jpg），用于加载前就排好版，避免图片加载后跳动
@@ -835,9 +832,8 @@
                     lastGalleryWidth = 0;
                     relayoutGallery();
                 }
-                // 实际画廊节点也提前完成解码，避免遮罩消失时集中解码。
+                // 在后台提前完成画廊节点解码，不阻塞固定时长的开场。
                 await Promise.all(galleryItems.map((item) => item.el.decode().catch(() => {})));
-                photosReady = true;
             }
 
             // 手机端两列，电脑端三列；新照片从当前滚动位置开始排
@@ -927,7 +923,7 @@
                 displayedProgress = percent;
                 const progressText = document.getElementById("progress-text");
                 if (progressText) {
-                    progressText.textContent = percent >= 100 ? "宫殿搭好啦 100%" : `收藏回忆中... ${percent}%`;
+                    progressText.textContent = percent >= 100 ? "宫殿搭好啦 100%" : `搭建宫殿中... ${percent}%`;
                 }
             }
 
@@ -936,12 +932,16 @@
                 relayoutGallery();
                 loadingStartTime = performance.now();
                 preloadPhotos();
-                if (shouldSkipIntro) revealGallery();
+                if (shouldSkipIntro) {
+                    revealGallery();
+                } else {
+                    setTimeout(finishIntro, loadingDuration - introFadeDuration);
+                }
             }
 
             // **2. 自动滚动：只移动轨道，顺带补图和回收**
             function autoScroll() {
-                if (!isLoaded) return; // **未加载完成前不滚动**
+                if (!isLoaded) return; // 开场结束前不滚动
 
                 const now = performance.now();
                 if (lastScrollTime === null) {
