@@ -15,7 +15,14 @@ renderer.setClearColor(0xff5555);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
+// 竖屏（手机）时把相机往后拉，保证爱心左右完整显示（爱心半宽约 0.48，两边各留一点余量）
+function fitCamera() {
+  const halfFov = THREE.MathUtils.degToRad(camera.fov / 2);
+  const distance = Math.max(1, 0.62 / (Math.tan(halfFov) * camera.aspect));
+  camera.position.setLength(distance);
+}
 camera.position.z = 1;
+fitCamera();
 
 const controls = new THREE.TrackballControls(camera, renderer.domElement);
 controls.noPan = true;
@@ -28,21 +35,41 @@ scene.add(group);
 let heart = null;
 let sampler = null;
 let originHeart = null;
-new THREE.OBJLoader().load('https://assets.codepen.io/127738/heart_2.obj',obj => {
-  heart = obj.children[0];
-  heart.geometry.rotateX(-Math.PI * 0.5);
-  heart.geometry.scale(0.04, 0.04, 0.04);
-  heart.geometry.translate(0, -0.4, 0);
-  group.add(heart);
-  
-  heart.material = new THREE.MeshBasicMaterial({
-    color: 0xff5555    
-  });
-  originHeart = Array.from(heart.geometry.attributes.position.array);
-  sampler = new THREE.MeshSurfaceSampler(heart).build();
-  init();
-  renderer.setAnimationLoop(render);
-});
+// 本地生成立体爱心（原先从 codepen 加载 OBJ，被跨域拦截导致心脏不显示）
+function createHeartGeometry(uSegments = 96, vSegments = 48) {
+  const vertices = [];
+  const indices = [];
+  for (let j = 0; j <= vSegments; j++) {
+    const v = -Math.PI / 2 + (j / vSegments) * Math.PI; // 前后方向
+    const s = Math.sqrt(Math.cos(v)); // 轮廓向中心收拢，开根号让表面更饱满
+    const z = Math.sin(v) * 7;
+    for (let i = 0; i <= uSegments; i++) {
+      const u = (i / uSegments) * Math.PI * 2; // 经典爱心曲线
+      const x = 16 * Math.pow(Math.sin(u), 3);
+      const y = 13 * Math.cos(u) - 5 * Math.cos(2 * u) - 2 * Math.cos(3 * u) - Math.cos(4 * u);
+      vertices.push(x * s, (y + 2.5) * s, z);
+    }
+  }
+  for (let j = 0; j < vSegments; j++) {
+    for (let i = 0; i < uSegments; i++) {
+      const a = j * (uSegments + 1) + i;
+      const b = a + uSegments + 1;
+      indices.push(a, b, a + 1, b, b + 1, a + 1);
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  geometry.setIndex(indices);
+  geometry.scale(0.03, 0.03, 0.03);
+  return geometry;
+}
+
+heart = new THREE.Mesh(createHeartGeometry(), new THREE.MeshBasicMaterial({
+  color: 0xff5555
+}));
+group.add(heart);
+originHeart = Array.from(heart.geometry.attributes.position.array);
+sampler = new THREE.MeshSurfaceSampler(new THREE.Mesh(heart.geometry.toNonIndexed())).build();
 
 let positions = [];
 const geometry = new THREE.BufferGeometry();
@@ -126,5 +153,10 @@ window.addEventListener("resize", onWindowResize, false);
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
+  fitCamera();
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
+
+// 依赖上面的 Grass / beat / render，放在文件末尾启动
+init();
+renderer.setAnimationLoop(render);

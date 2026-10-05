@@ -308,32 +308,27 @@
         }
 
         .images-gallery {
-            display: flex;
-            align-items: flex-start;
-            /* 让列的高度根据内容变化 */
+            position: relative;
             overflow: hidden;
             /* 隐藏滚动条 */
             height: 100vh;
         }
 
-        .column {
-            flex-grow: 1;
-            width: 33.3333%;
-        }
-
-        .column img {
+        /* 照片轨道：用 transform 整体上移，滚动不触发重排 */
+        .gallery-track {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
+            will-change: transform;
+        }
+
+        /* 照片按预先算好的位置和尺寸绝对定位，加载前后不跳动 */
+        .gallery-item {
+            position: absolute;
             display: block;
-        }
-
-        .column:nth-child(odd) {
-            padding-right: 0.1vw;
-            padding-left: 0.1vw;
-        }
-
-        .column div {
-            margin-top: 0.1vw;
-            margin-bottom: 0.1vw;
+            object-fit: cover;
+            background: #f6dbe4;
         }
 
         @media screen and (max-width: 768px) {
@@ -650,7 +645,7 @@
         <div class="nav-links">
             <a href="index.html" class="nav-link active">首页</a>
             <a href="game.html" class="nav-link">互动小游戏</a>
-            <a href="heart.html" class="nav-link">瞅瞅我的心动</a>
+            <a href="heart.html" class="nav-link">瞅瞅金博的心脏</a>
         </div>
     </nav>
 
@@ -658,7 +653,7 @@
         <div class="loading-content">
             <canvas id="heartCanvas"></canvas>
             <div class="loading-text">
-                <div class="main-text">编织爱的每一刻...</div>
+                <div class="main-text">金博的记忆宫殿搭建中...</div>
                 <div id="progress-text" class="progress-text">加载中... 0%</div>
             </div>
         </div>
@@ -671,9 +666,7 @@
 
     <section>
         <div class="images-gallery" id="images-gallery">
-            <div class="column"></div>
-            <div class="column"></div>
-            <div class="column"></div>
+            <div class="gallery-track" id="gallery-track"></div>
         </div>
     </section>
     <script src="./urls.js"></script>
@@ -686,7 +679,7 @@
 
         document.addEventListener("DOMContentLoaded", function () {
             const gallery = document.getElementById("images-gallery");
-            const columns = document.querySelectorAll(".column");
+            const track = document.getElementById("gallery-track");
             const loadingScreen = document.getElementById("loading-screen");
             const shouldSkipIntro = new URLSearchParams(window.location.search).get("skipIntro") === "1";
 
@@ -864,27 +857,99 @@
                 }, 220);
             }
 
-            const PHOTO_COUNT = 39; // images/photo1.jpg ~ photoN.jpg
-            const photoUrls = Array.from({ length: PHOTO_COUNT }, (_, i) => `./images/photo${i + 1}.jpg`);
+            // 照片高宽比（images/photo1.jpg ~ photoN.jpg），用于加载前就排好版，避免图片加载后跳动
+            const PHOTO_RATIOS = [
+                1.333, 0.750, 0.751, 1.000, 1.333, 1.333, 1.333, 1.333, 1.332, 1.332, 1.333, 1.333, 1.501, 1.333, 1.332, 1.333, 1.333, 1.332, 1.333, 1.332, 1.335, 1.333, 1.333, 1.357, 1.333, 0.734, 1.332, 1.333, 1.333, 1.332, 1.333, 1.332, 0.738, 1.333, 0.750, 0.751, 1.333, 0.861, 1.333
+            ];
+            const photoUrls = PHOTO_RATIOS.map((_, i) => `./images/photo${i + 1}.jpg`);
+            const GALLERY_GAP = 2; // 照片间距 px
+            const BUFFER_SCREENS = 0.5; // 屏幕下方预先排好的高度（屏数），给图片留出加载时间
 
-            // **工具函数：随机获取图片，尽量避开同一行和相邻位置的重复**
-            function getRandomImage(exclude = []) {
-                const blocked = new Set(exclude.filter(Boolean));
-                const candidates = photoUrls.filter((url) => !blocked.has(url));
-                const pool = candidates.length ? candidates : photoUrls;
-                const randomIndex = Math.floor(Math.random() * pool.length);
-                return pool[randomIndex];
+            let columnCount = 3;
+            let columnWidth = 0;
+            let columnHeights = [];
+            let viewportHeight = 0;
+            let galleryItems = []; // 屏幕内及下方缓冲区的照片：{ index, bottom, el }
+            const lastShownAt = new Array(photoUrls.length).fill(0);
+            let placedCount = 0;
+
+            // 手机端两列，电脑端三列；新照片从当前滚动位置开始排
+            function layoutColumns() {
+                columnCount = window.matchMedia("(max-width: 768px)").matches ? 2 : 3;
+                columnWidth = (gallery.clientWidth - GALLERY_GAP * (columnCount - 1)) / columnCount;
+                columnHeights = new Array(columnCount).fill(scrollPosition);
+                viewportHeight = gallery.clientHeight;
             }
 
-            function getColumnImages(column) {
-                return Array.from(column.querySelectorAll("img")).map((img) => img.dataset.photoSrc || img.src.split("?")[0]);
+            // **选图：排除所有还在页面上的照片，再从最久没出现过的一半里随机挑，保证同屏不重复**
+            function pickPhoto() {
+                const onPage = new Set(galleryItems.map((item) => item.index));
+                let candidates = photoUrls.map((_, i) => i).filter((i) => !onPage.has(i));
+                if (candidates.length === 0) candidates = photoUrls.map((_, i) => i);
+                candidates.sort((a, b) => lastShownAt[a] - lastShownAt[b]);
+                const pool = candidates.slice(0, Math.max(1, Math.ceil(candidates.length / 2)));
+                return pool[Math.floor(Math.random() * pool.length)];
             }
 
-            function setGalleryImage(img, photoUrl) {
-                img.dataset.photoSrc = photoUrl;
-                img.src = photoUrl + '?x-oss-process=image/resize,p_20';
-                img.alt = "img";
+            // 新照片总是放进当前最短的一列，这样照片出现顺序和它在屏幕上的上下位置一致
+            function addPhoto() {
+                const column = columnHeights.indexOf(Math.min(...columnHeights));
+                const index = pickPhoto();
+                const top = columnHeights[column];
+                const height = Math.round(columnWidth * PHOTO_RATIOS[index]);
+
+                const img = document.createElement("img");
+                img.className = "gallery-item";
+                // 手机端自动选 600px 缩略图，减轻解码和内存压力；电脑端用原图
+                img.srcset = `${photoUrls[index].replace("/images/", "/images/thumb/")} 600w, ${photoUrls[index]} 1050w`;
+                img.sizes = `${Math.round(columnWidth)}px`;
+                img.src = photoUrls[index];
+                img.alt = "";
+                img.decoding = "async";
+                img.style.left = `${column * (columnWidth + GALLERY_GAP)}px`;
+                img.style.top = `${top}px`;
+                img.style.width = `${columnWidth}px`;
+                img.style.height = `${height}px`;
+                track.appendChild(img);
+
+                galleryItems.push({ index, bottom: top + height, el: img });
+                columnHeights[column] = top + height + GALLERY_GAP;
+                lastShownAt[index] = ++placedCount;
             }
+
+            // 补齐屏幕下方的照片，回收已经滚出顶部的照片
+            function fillGallery() {
+                const targetBottom = scrollPosition + viewportHeight * (1 + BUFFER_SCREENS);
+                while (Math.min(...columnHeights) < targetBottom) addPhoto();
+
+                if (galleryItems.length && galleryItems[0].bottom < scrollPosition) {
+                    galleryItems = galleryItems.filter((item) => {
+                        if (item.bottom >= scrollPosition) return true;
+                        item.el.remove();
+                        return false;
+                    });
+                }
+            }
+
+            // 宽度变化（旋转屏幕等）时从当前位置重新排版；仅高度变化（手机地址栏收起）只更新缓冲高度
+            let lastGalleryWidth = 0;
+            function relayoutGallery() {
+                if (gallery.clientWidth === lastGalleryWidth) {
+                    viewportHeight = gallery.clientHeight;
+                    return;
+                }
+                lastGalleryWidth = gallery.clientWidth;
+                galleryItems.forEach((item) => item.el.remove());
+                galleryItems = [];
+                layoutColumns();
+                fillGallery();
+            }
+
+            let resizeTimer = null;
+            window.addEventListener("resize", () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(relayoutGallery, 200);
+            });
 
             // **更新加载文本**
             function updateLoadingText(percent) {
@@ -938,23 +1003,10 @@
                 }
             }
 
-            // **1. 初始化，每个 column 先填充 8 张图片**
+            // **1. 初始化：排满一屏半的照片**
             function initializeGallery() {
-                for (let row = 0; row < 8; row++) {
-                    const usedInRow = [];
-                    columns.forEach((column) => {
-                        const newDiv = document.createElement("div");
-                        const newImg = document.createElement("img");
-                        const columnImages = getColumnImages(column);
-                        const previousInColumn = columnImages[columnImages.length - 1];
-                        const photoUrl = getRandomImage([...usedInRow, previousInColumn]);
-                        usedInRow.push(photoUrl);
-                        setGalleryImage(newImg, photoUrl);
-                        newDiv.appendChild(newImg);
-                        column.appendChild(newDiv);
-                    });
-                }
-                
+                relayoutGallery();
+
                 if (shouldSkipIntro) {
                     isIntroAnimating = false;
                     loadingScreen.classList.add("hidden");
@@ -965,39 +1017,9 @@
                 }
             }
 
-            // **2. 检查每个 column 是否触底**
-            function checkColumns() {
-                columns.forEach((column) => {
-                    const rect = column.getBoundingClientRect();
-                    const windowHeight = window.innerHeight;
-
-                    if (rect.bottom < windowHeight + windowHeight / 2) {
-                        addNewImageToColumn(column);
-                    }
-                });
-            }
-
-            // **3. 只给触底的 column 添加图片**
-            function addNewImageToColumn(column) {
-                const newDiv = document.createElement("div");
-                const newImg = document.createElement("img");
-                const rowIndex = column.children.length;
-                const sameRowImages = Array.from(columns)
-                    .filter((otherColumn) => otherColumn !== column)
-                    .map((otherColumn) => otherColumn.children[rowIndex]?.querySelector("img")?.dataset.photoSrc);
-                const columnImages = getColumnImages(column);
-                const previousInColumn = columnImages[columnImages.length - 1];
-                const photoUrl = getRandomImage([...sameRowImages, previousInColumn]);
-                setGalleryImage(newImg, photoUrl);
-                newDiv.appendChild(newImg);
-                column.appendChild(newDiv);
-            }
-
-            // **4. 自动滚动**
+            // **2. 自动滚动：只移动轨道，顺带补图和回收**
             function autoScroll() {
                 if (!isLoaded) return; // **未加载完成前不滚动**
-
-                checkColumns(); // 每帧检查是否有列触底
 
                 const now = performance.now();
                 if (lastScrollTime === null) {
@@ -1007,7 +1029,8 @@
                 lastScrollTime = now;
 
                 scrollPosition += scrollSpeed * deltaSeconds;
-                gallery.scrollTop = scrollPosition;
+                track.style.transform = `translate3d(0, ${-scrollPosition}px, 0)`;
+                fillGallery();
 
                 requestAnimationFrame(autoScroll);
             }
