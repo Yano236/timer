@@ -40,6 +40,7 @@ h1 {
 }
 
 button {
+    box-sizing: border-box;
     font-size: 4vw;
     /* 字体大小根据视口宽度变化 */
     padding: 10px 20px;
@@ -47,7 +48,8 @@ button {
     border-radius: 5px;
     cursor: pointer;
     margin: 10px;
-    transition: all 0.3s ease;
+    transition: width 0.2s ease-in-out, height 0.2s ease-in-out,
+        background-color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 .buttons {
@@ -63,13 +65,15 @@ button {
     /* 初始就比“？你认真的吗…”的七个字符加左右内边距宽 16px。 */
     width: calc(7em + 56px);
     max-width: calc(100% - 20px);
-    transition: width 0.15s ease-in-out, height 0.6s ease-in-out;
+    transition: width 0.2s ease-in-out, height 0.2s ease-in-out;
     background-color: #d4818e;
     /* 粉色 */
     color: white;
 }
 
 #no {
+    flex-shrink: 0;
+    white-space: nowrap;
     background-color: #6784b1;
     /* 蓝色 */
     color: white;
@@ -127,12 +131,19 @@ button {
     h1 {
         font-size: 28px;
         /* 固定字体大小 */
-        margin: 20px 0;
+        margin: 20px auto;
     }
 
     button {
         font-size: 18px;
         /* 固定字体大小 */
+    }
+
+    .buttons {
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
     }
 
     .yes-text {
