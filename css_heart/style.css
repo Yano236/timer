@@ -14,6 +14,12 @@ body {
 div#main {
   width: 100vw;
   height: 100vh;
+  /* 全屏飘字层：裁掉右侧溢出的飘字，避免手机端页面被撑宽、导航栏跟着变宽 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none; /* 不挡住 3D 爱心的拖拽 */
 }
 
 /**
@@ -37,7 +43,7 @@ heart {
 */
 heart::before {
   position: absolute;
-  content: 'Miss You, YSM';
+  content: 'Miss You, dxy';
   width: 200px;
   height: 20px;
   /* background: #e74c3c; */

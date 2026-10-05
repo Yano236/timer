@@ -59,8 +59,8 @@ yesButton.addEventListener("click", function () {
     yesText.textContent = "!!!喜欢你!! ( >᎑<)♡︎ᐝ";
     
     const yesImage = document.createElement("img");
-    yesImage.src = "./images3/hug.png";
-    yesImage.alt = "拥抱";
+    yesImage.src = "./images3/yes.jpg";
+    yesImage.alt = "丁香鱼";
     yesImage.className = "yes-image";
     
     yesScreen.appendChild(yesText);

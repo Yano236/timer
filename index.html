@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Always Love YSM</title>
+    <title>Always Following dxy</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -566,7 +566,7 @@
             
             .nav-links {
                 display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-columns: repeat(3, minmax(0, 1fr));
                 gap: 8px;
                 width: min(100%, 430px);
             }
@@ -605,7 +605,7 @@
         
         @media (max-width: 480px) {
             :root {
-                --nav-height: 122px;
+                --nav-height: 104px;
             }
 
             .navbar {
@@ -645,13 +645,12 @@
     <nav class="navbar">
         <div class="logo">
             <img src="./images2/logo.png" alt="Logo" class="logo-img">
-            <span>Always Love YSM</span>
+            <span>Always Following dxy</span>
         </div>
         <div class="nav-links">
             <a href="index.html" class="nav-link active">首页</a>
             <a href="game.html" class="nav-link">互动小游戏</a>
-            <a href="heart.html" class="nav-link">瞅瞅爸爸的心脏</a>
-            <a href="birthday-countdown.html" class="nav-link" data-festival-link>生日倒计时</a>
+            <a href="heart.html" class="nav-link">瞅瞅我的心动</a>
         </div>
     </nav>
 
@@ -666,7 +665,7 @@
     </div>
 
     <div class="overlay-div">
-        <div class="overlay-text">邂逅乖女儿敏敏🥰</div>
+        <div class="overlay-text">邂逅丁香鱼🥰</div>
         <div id="fliptimer" class="fliptimer"></div>
     </div>
 
@@ -678,10 +677,9 @@
         </div>
     </section>
     <script src="./urls.js"></script>
-    <script src="./festival-links.js"></script>
 
     <script>
-        var startTime = new Date("2026-04-29T09:59:00").getTime() / 1000 - 86400; // 目标时间
+        var startTime = new Date("2026-09-28T20:57:00").getTime() / 1000 - 86400; // 目标时间
         let body = document.body;
         var flipdown = new FlipTimer(startTime).start()
         body.querySelector('#fliptimer').classList.toggle('fliptimer__theme-light');
@@ -866,21 +864,8 @@
                 }, 220);
             }
 
-            const photoUrls = [
-                "./images/photo1.jpg",
-                "./images/photo2.jpg",
-                "./images/photo3.jpg",
-                "./images/photo4.jpg",
-                "./images/photo5.jpg",
-                "./images/photo6.jpg",
-                "./images/photo7.jpg",
-                "./images/photo8.jpg",
-                "./images/photo9.jpg",
-                "./images/photo10.jpg",
-                "./images/photo11.jpg",
-                "./images/photo12.jpg",
-                "./images/photo13.jpg",
-            ];
+            const PHOTO_COUNT = 39; // images/photo1.jpg ~ photoN.jpg
+            const photoUrls = Array.from({ length: PHOTO_COUNT }, (_, i) => `./images/photo${i + 1}.jpg`);
 
             // **工具函数：随机获取图片，尽量避开同一行和相邻位置的重复**
             function getRandomImage(exclude = []) {
