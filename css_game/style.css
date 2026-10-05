@@ -14,8 +14,6 @@ body {
 .container {
     width: 90%;
     /* 适应手机屏幕宽度 */
-    max-width: 500px;
-    /* 最大宽度限制 */
 }
 
 #mainImage {
@@ -36,6 +34,9 @@ h1 {
     /* 增加上下间距 */
     text-wrap: balance;
     /* 长问题换行时两行等长，避免末尾单字成行 */
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 button {
@@ -57,6 +58,9 @@ button {
 }
 
 #yes {
+    box-sizing: border-box;
+    flex-shrink: 0;
+    transition: width 0.6s ease-in-out, height 0.6s ease-in-out;
     background-color: #d4818e;
     /* 粉色 */
     color: white;
@@ -108,7 +112,7 @@ button {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: auto;
+        width: 90%;
         max-width: none;
     }
 

@@ -40,8 +40,8 @@
             width: 100%;
             height: 100%;
             background:
-                radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.96) 0 18%, rgba(255, 247, 250, 0.82) 42%, transparent 63%),
-                linear-gradient(135deg, #fff8f5 0%, #f8fbff 45%, #fff0f7 100%);
+                radial-gradient(circle at 50% 42%, #ffffff 0 18%, rgba(255, 252, 245, 0.82) 42%, transparent 68%),
+                linear-gradient(135deg, #fbf3e7 0%, #edf7f2 50%, #f8e9ee 100%);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -66,13 +66,13 @@
         #loading-screen::before {
             background:
                 linear-gradient(115deg, transparent 0 22%, rgba(255, 255, 255, 0.58) 34%, transparent 47%),
-                repeating-linear-gradient(90deg, rgba(255, 83, 143, 0.06) 0 1px, transparent 1px 92px);
+                radial-gradient(circle, rgba(111, 155, 144, 0.12) 2px, transparent 3px) 0 0 / 32px 32px;
             animation: openingSheen 6s ease-in-out infinite;
         }
 
         #loading-screen::after {
             background:
-                radial-gradient(circle at center, transparent 0 43%, rgba(255, 120, 174, 0.16) 62%, rgba(112, 189, 180, 0.08) 74%, transparent 76%);
+                radial-gradient(circle at center, transparent 0 43%, rgba(210, 181, 137, 0.12) 62%, rgba(112, 189, 180, 0.08) 74%, transparent 76%);
             animation: openingHalo 4.8s ease-in-out infinite;
         }
 
@@ -97,23 +97,18 @@
             z-index: 1;
         }
 
-        /* 调整canvas大小 - 占1/4屏幕 */
-        #heartCanvas {
-            width: clamp(310px, 64vmin, 640px);
-            height: clamp(310px, 64vmin, 640px);
+        /* 积木宫殿与文字上下排列，搭建过程完整可见 */
+        #palaceCanvas {
+            width: min(80vw, 64vh, 560px);
+            aspect-ratio: 5 / 4;
             display: block;
-            margin-bottom: 12px;
-            filter: drop-shadow(0 24px 42px rgba(255, 74, 139, 0.2));
-            animation: loadingFloat 3.8s ease-in-out infinite;
-            will-change: transform;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 20px 26px rgba(111, 135, 126, 0.12));
         }
 
         /* 加载文字容器 */
         .loading-text {
-            position: absolute;
-            top: 51%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            position: relative;
             text-align: center;
             width: min(82vw, 500px);
             padding: 28px 34px 24px;
@@ -128,13 +123,13 @@
         /* 主标题文字 - 使用更浪漫的手写字体 */
         .main-text {
             font-family: 'Dancing Script', 'Pacifico', cursive;
-            font-size: clamp(1.9rem, 3.4vw, 2.75rem);
+            font-size: clamp(1.5rem, 2.4vw, 1.9rem);
             color: #6d0039;
             font-weight: 700;
             margin-bottom: 14px;
             text-shadow: 0 8px 24px rgba(255, 255, 255, 0.9);
             letter-spacing: 0;
-            white-space: nowrap;
+            white-space: normal;
             animation: textGlow 2.4s ease-in-out infinite;
         }
 
@@ -156,53 +151,6 @@
             text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
         }
 
-        /* 爱心爆炸动画粒子 */
-        .heart-explosion {
-            position: absolute;
-            width: 14px;
-            height: 14px;
-            background: #ff3b8d;
-            border-radius: 4px 4px 0 0;
-            pointer-events: none;
-            opacity: 0;
-            transform: rotate(-45deg);
-            filter: drop-shadow(0 8px 12px rgba(255, 59, 141, 0.25));
-        }
-
-        .heart-explosion::before,
-        .heart-explosion::after {
-            content: "";
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: inherit;
-        }
-
-        .heart-explosion::before {
-            left: 0;
-            top: -50%;
-        }
-
-        .heart-explosion::after {
-            left: 50%;
-            top: 0;
-        }
-
-        @keyframes explode {
-            0% {
-                transform: translate(0, 0) rotate(-45deg) scale(0);
-                opacity: 1;
-            }
-            45% {
-                opacity: 0.92;
-            }
-            100% {
-                transform: translate(var(--tx), var(--ty)) rotate(var(--rotate)) scale(var(--scale));
-                opacity: 0;
-            }
-        }
-
         @keyframes openingSheen {
             0%, 100% {
                 transform: translateX(-5%) rotate(0.001deg);
@@ -222,15 +170,6 @@
             50% {
                 transform: scale(1.06);
                 opacity: 1;
-            }
-        }
-
-        @keyframes loadingFloat {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-10px);
             }
         }
 
@@ -338,9 +277,9 @@
             .images-gallery {
                 width: 100vw;
             }
-            #heartCanvas {
+            #palaceCanvas {
                 width: min(88vw, 430px);
-                height: min(88vw, 430px);
+                max-width: 70vh;
             }
             .main-text {
                 font-size: 1.82rem;
@@ -357,12 +296,11 @@
             .loading-content {
                 width: 100vw;
             }
-            #heartCanvas {
-                width: min(96vw, 360px);
-                height: min(96vw, 360px);
+            #palaceCanvas {
+                width: min(92vw, 360px, 70vh);
             }
             .loading-text {
-                width: min(calc(100vw - 72px), 270px);
+                width: min(calc(100vw - 40px), 340px);
                 padding: 18px 18px 17px;
                 border-radius: 22px;
                 background: rgba(255, 255, 255, 0.74);
@@ -651,10 +589,10 @@
 
     <div id="loading-screen">
         <div class="loading-content">
-            <canvas id="heartCanvas"></canvas>
+            <canvas id="palaceCanvas" aria-hidden="true"></canvas>
             <div class="loading-text">
                 <div class="main-text">金博的记忆宫殿搭建中...</div>
-                <div id="progress-text" class="progress-text">加载中... 0%</div>
+                <div id="progress-text" class="progress-text" role="status">收藏回忆中... 0%</div>
             </div>
         </div>
     </div>
@@ -669,7 +607,6 @@
             <div class="gallery-track" id="gallery-track"></div>
         </div>
     </section>
-    <script src="./urls.js"></script>
 
     <script>
         var startTime = new Date("2026-09-28T20:57:00").getTime() / 1000 - 86400; // 目标时间
@@ -689,172 +626,145 @@
             let lastScrollTime = null;
             let isLoaded = false; // **是否加载完成**
 
-            // 获取 Canvas
-            const canvas = document.getElementById("heartCanvas");
+            const canvas = document.getElementById("palaceCanvas");
             const ctx = canvas.getContext("2d");
-            const canvasSize = isMobileViewport ? 500 : 600;
-            const dpr = isMobileViewport ? 1 : Math.min(window.devicePixelRatio || 1, 1.25);
-            canvas.width = canvasSize * dpr;
-            canvas.height = canvasSize * dpr;
+            const canvasWidth = 600;
+            const canvasHeight = 480;
+            const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+            canvas.width = canvasWidth * dpr;
+            canvas.height = canvasHeight * dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-            const centerX = canvasSize / 2;
-            const centerY = canvasSize / 2 + 12;
-
-            const particles = [];
-            const particleCount = isMobileViewport ? 150 : 210;
-            const outlineCount = Math.round(particleCount * 0.54);
-            const heartScale = isMobileViewport ? 11.2 : 13.7;
-            let progressPercent = 0; // 进度条（0~100）
+            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
             let progressValue = 0;
             let displayedProgress = -1;
             let isIntroAnimating = !shouldSkipIntro;
+            let photosSettled = 0;
+            let photosLoaded = 0;
+            let photosReady = false;
+            let loadingStartTime = performance.now();
+            const loadingDuration = 3200;
 
-            function heartFunction(t, scale = heartScale) {
-                return {
-                    x: centerX + 16 * scale * Math.pow(Math.sin(t), 3),
-                    y: centerY - scale * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t))
-                };
-            }
-
-            function drawHeartPath(progress, alpha, lineWidth, glow) {
-                if (progress <= 0) return;
-
-                const gradient = ctx.createLinearGradient(centerX - 220, centerY - 210, centerX + 220, centerY + 210);
-                gradient.addColorStop(0, "#ff5d9e");
-                gradient.addColorStop(0.48, "#ff9ac7");
-                gradient.addColorStop(1, "#83d8cf");
-
-                ctx.save();
-                ctx.globalAlpha = alpha;
-                ctx.strokeStyle = gradient;
-                ctx.lineWidth = lineWidth;
-                ctx.lineCap = "round";
-                ctx.lineJoin = "round";
-                ctx.shadowColor = "rgba(255, 80, 148, 0.48)";
-                ctx.shadowBlur = isMobileViewport ? glow * 0.35 : glow;
-                ctx.beginPath();
-
-                const maxT = Math.PI * 2 * progress;
-                for (let t = 0; t <= maxT; t += 0.025) {
-                    const pos = heartFunction(t);
-                    if (t === 0) {
-                        ctx.moveTo(pos.x, pos.y);
-                    } else {
-                        ctx.lineTo(pos.x, pos.y);
-                    }
-                }
-
-                ctx.stroke();
-                ctx.restore();
-            }
-
-            function createParticles() {
-                for (let i = 0; i < particleCount; i++) {
-                    const outline = i < outlineCount;
-                    const t = outline ? (Math.PI * 2 * i) / outlineCount : Math.random() * Math.PI * 2;
-                    const edge = heartFunction(t);
-                    const depth = outline ? 0.94 + Math.random() * 0.08 : 0.18 + Math.pow(Math.random(), 0.45) * 0.72;
-                    const jitter = outline ? 1.4 : 4.2;
-                    const x = centerX + (edge.x - centerX) * depth + (Math.random() - 0.5) * jitter;
-                    const y = centerY + (edge.y - centerY) * depth + (Math.random() - 0.5) * jitter;
-
-                    particles.push({
-                        x,
-                        y,
-                        originalX: x,
-                        originalY: y,
-                        size: outline ? Math.random() * 2.6 + 2.3 : Math.random() * 2.8 + 1.2,
-                        alpha: 0,
-                        revealAt: Math.random() * (outline ? 0.72 : 0.78),
-                        revealSpeed: outline ? 0.16 + Math.random() * 0.08 : 0.2 + Math.random() * 0.12,
-                        hue: outline ? Math.random() * 20 + 335 : Math.random() * 70 + 315,
-                        lightness: outline ? Math.random() * 10 + 58 : Math.random() * 14 + 64,
-                        depth,
-                        outline,
-                        phase: Math.random() * Math.PI * 2
+            const blockColors = [
+                { front: "#dba1ad", top: "#efbec8", side: "#bd7e8c" },
+                { front: "#91bfb2", top: "#b8dace", side: "#709d91" },
+                { front: "#e1c394", top: "#f4deb9", side: "#bd9e72" },
+                { front: "#9eafcd", top: "#c0cce1", side: "#7b90b2" }
+            ];
+            const blocks = [];
+            // 从地基向上搭起两座塔楼，中央留出宫殿入口。
+            for (let row = 0; row < 7; row++) {
+                for (let column = 0; column < 8; column++) {
+                    const tower = column < 2 || column > 5;
+                    if (row < 2 && (column === 3 || column === 4)) continue;
+                    if (row > 4 && !tower && !(row === 5 && (column === 3 || column === 4))) continue;
+                    blocks.push({
+                        x: 88 + column * 52,
+                        y: 366 - row * 39,
+                        color: blockColors[tower ? (row % 2 === 0 ? 0 : 2) : (row % 2 === 0 ? 1 : 3)]
                     });
                 }
             }
 
-            function drawParticles() {
-                const now = performance.now() * 0.001;
-                const progress = progressValue;
-
-                ctx.clearRect(0, 0, canvasSize, canvasSize);
-
-                const glow = ctx.createRadialGradient(centerX, centerY, 16, centerX, centerY, isMobileViewport ? 202 : 244);
-                glow.addColorStop(0, `rgba(255, 255, 255, ${0.35 + progress * 0.18})`);
-                glow.addColorStop(0.36, `rgba(255, 110, 168, ${0.12 + progress * 0.13})`);
-                glow.addColorStop(0.72, `rgba(131, 216, 207, ${0.04 + progress * 0.08})`);
-                glow.addColorStop(1, "rgba(255, 255, 255, 0)");
-                ctx.fillStyle = glow;
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, isMobileViewport ? 214 : 254, 0, Math.PI * 2);
-                ctx.fill();
-
-                drawHeartPath(1, 0.12 + progress * 0.34, isMobileViewport ? 1.6 : 2, 8 + progress * 8);
-
+            function drawBlock(x, y, width, height, color, alpha = 1) {
                 ctx.save();
-                ctx.globalCompositeOperation = "lighter";
-                particles.forEach((p, index) => {
-                    const localProgress = Math.max(0, Math.min(1, (progress - p.revealAt) / p.revealSpeed));
-                    const targetAlpha = localProgress * localProgress * (3 - 2 * localProgress);
-                    p.alpha += (targetAlpha - p.alpha) * 0.14;
-                    if (p.alpha < 0.01) return;
-
-                    const drift = p.outline ? 1.2 : 2.6;
-                    const shimmer = 0.86 + Math.sin(now * 2.1 + p.phase) * 0.14;
-                    const x = p.originalX + Math.sin(now * 1.35 + p.phase) * drift * (1.08 - p.depth);
-                    const y = p.originalY + Math.cos(now * 1.15 + p.phase) * drift * (1.08 - p.depth);
-                    const radius = p.size * shimmer * (0.92 + progress * 0.22);
-
-                    ctx.globalAlpha = p.alpha * (p.outline ? 0.88 : 0.68);
-                    ctx.fillStyle = `hsl(${p.hue}, 94%, ${p.lightness}%)`;
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = color.top;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + 8, y - 8);
+                ctx.lineTo(x + width + 8, y - 8);
+                ctx.lineTo(x + width, y);
+                ctx.closePath();
+                ctx.fill();
+                ctx.fillStyle = color.side;
+                ctx.beginPath();
+                ctx.moveTo(x + width, y);
+                ctx.lineTo(x + width + 8, y - 8);
+                ctx.lineTo(x + width + 8, y + height - 8);
+                ctx.lineTo(x + width, y + height);
+                ctx.closePath();
+                ctx.fill();
+                ctx.fillStyle = color.front;
+                ctx.beginPath();
+                ctx.roundRect(x, y, width, height, 3);
+                ctx.fill();
+                // 顶部凸点让每一块都像真正的拼插积木。
+                for (let stud = 0; stud < Math.min(8, Math.round(width / 24)); stud++) {
+                    const studX = x + 15 + stud * (width - 24) / Math.max(1, Math.min(8, Math.round(width / 24)) - 1);
+                    ctx.fillStyle = color.side;
                     ctx.beginPath();
-                    ctx.arc(x, y, radius, 0, Math.PI * 2);
+                    ctx.ellipse(studX, y - 5, 7, 3.5, 0, 0, Math.PI * 2);
                     ctx.fill();
-                });
+                    ctx.fillStyle = color.top;
+                    ctx.beginPath();
+                    ctx.ellipse(studX, y - 8, 7, 3.5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
                 ctx.restore();
+            }
 
-                ctx.save();
-                ctx.globalAlpha = 0.38 + progress * 0.34;
-                ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
-                ctx.shadowColor = "rgba(255, 86, 149, 0.28)";
-                ctx.shadowBlur = isMobileViewport ? 6 : 14;
+            function drawPalace() {
+                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                ctx.fillStyle = "rgba(100, 130, 119, 0.1)";
                 ctx.beginPath();
-                ctx.arc(centerX, centerY + 3 + Math.sin(now * 2.1) * 1.6, 7 + progress * 2.8, 0, Math.PI * 2);
+                ctx.ellipse(305, 421, 238, 20, 0, 0, Math.PI * 2);
                 ctx.fill();
+                drawBlock(68, 408, 460, 16, blockColors[1]);
+                // 淡淡的施工轮廓，随着积木落下被填满。
+                ctx.save();
+                ctx.strokeStyle = "rgba(129, 153, 144, 0.18)";
+                ctx.setLineDash([4, 6]);
+                blocks.forEach((block) => ctx.strokeRect(block.x, block.y, 48, 34));
                 ctx.restore();
+                const built = progressValue * blocks.length;
+                blocks.forEach((block, index) => {
+                    const local = Math.min(1, Math.max(0, built - index));
+                    if (local <= 0) return;
+                    const fall = reducedMotion ? 0 : Math.pow(1 - local, 3) * 125;
+                    drawBlock(block.x, block.y - fall, 48, 34, block.color, Math.min(1, local * 3));
+                });
+                if (progressValue < 0.99 && !reducedMotion) {
+                    const next = blocks[Math.floor(built)];
+                    if (next) drawBlock(next.x, next.y - 145 + Math.sin(performance.now() / 450) * 5, 48, 34, next.color, 0.18);
+                }
+                // 最后一块落下后，宫殿入口亮起暖光。
+                if (progressValue > 0.94) {
+                    ctx.fillStyle = `rgba(241, 196, 104, ${(progressValue - 0.94) / 0.06 * 0.35})`;
+                    ctx.beginPath();
+                    ctx.roundRect(244, 329, 100, 72, [24, 24, 0, 0]);
+                    ctx.fill();
+                }
+            }
+
+            function revealGallery() {
+                isIntroAnimating = false;
+                loadingScreen.classList.add("hidden");
+                isLoaded = true;
+                requestAnimationFrame(autoScroll);
             }
 
             function renderIntro() {
                 if (!isIntroAnimating) return;
-                const elapsed = performance.now() - loadingStartTime;
-                const rawProgress = Math.min(1, elapsed / loadingDuration);
-                const easedProgress = 1 - Math.pow(1 - rawProgress, 3);
-                progressValue = easedProgress;
-                progressPercent = Math.min(100, Math.floor(progressValue * 100));
-                updateLoadingText(progressPercent);
-                drawParticles();
-
-                if (rawProgress < 1) {
+                const timeProgress = Math.min(1, (performance.now() - loadingStartTime) / loadingDuration);
+                const assetProgress = photosSettled / photoUrls.length;
+                const targetProgress = Math.min(timeProgress, assetProgress);
+                progressValue += (targetProgress - progressValue) * 0.12;
+                updateLoadingText(Math.floor(progressValue * 100));
+                drawPalace();
+                if (!photosReady || timeProgress < 1 || progressValue < 0.995) {
                     requestAnimationFrame(renderIntro);
                     return;
                 }
-
-                progressPercent = 100;
                 progressValue = 1;
                 updateLoadingText(100);
-                setTimeout(() => {
-                    playHeartExplosion();
-                    setTimeout(() => {
-                        isIntroAnimating = false;
-                        loadingScreen.classList.add("hidden");
-                        isLoaded = true;
-                        requestAnimationFrame(autoScroll);
-                    }, 760);
-                }, 220);
+                drawPalace();
+                if (photosLoaded === 0) {
+                    isIntroAnimating = false;
+                    document.getElementById("progress-text").textContent = "照片暂未加载成功，请刷新重试";
+                    return;
+                }
+                isIntroAnimating = false;
+                setTimeout(revealGallery, reducedMotion ? 0 : 450);
             }
 
             // 照片高宽比（images/photo1.jpg ~ photoN.jpg），用于加载前就排好版，避免图片加载后跳动
@@ -863,7 +773,7 @@
             ];
             const photoUrls = PHOTO_RATIOS.map((_, i) => `./images/photo${i + 1}.jpg`);
             const GALLERY_GAP = 2; // 照片间距 px
-            const BUFFER_SCREENS = 0.5; // 屏幕下方预先排好的高度（屏数），给图片留出加载时间
+            const BUFFER_SCREENS = 2; // 提前排好下方两屏，留足加载和解码时间
 
             let columnCount = 3;
             let columnWidth = 0;
@@ -872,6 +782,63 @@
             let galleryItems = []; // 屏幕内及下方缓冲区的照片：{ index, bottom, el }
             const lastShownAt = new Array(photoUrls.length).fill(0);
             let placedCount = 0;
+            const photoCache = new Map(); // 保留预加载图片，复用浏览器缓存和解码结果
+
+            function photoSource(index) {
+                // 手机固定使用 600px 版本；桌面根据显示尺寸选择，预加载与实际展示使用相同 URL。
+                const useThumbnail = window.matchMedia("(max-width: 768px)").matches ||
+                    columnWidth * (window.devicePixelRatio || 1) <= 600;
+                return useThumbnail ? photoUrls[index].replace("/images/", "/images/thumb/") : photoUrls[index];
+            }
+
+            function preloadPhoto(index) {
+                const source = photoSource(index);
+                if (photoCache.has(source)) return photoCache.get(source).promise;
+                const image = new Image();
+                image.decoding = "async";
+                const entry = { image, status: "loading", promise: null };
+                entry.promise = new Promise((resolve) => {
+                    image.onload = async () => {
+                        try {
+                            await image.decode();
+                            entry.status = "ready";
+                            resolve(true);
+                        } catch {
+                            entry.status = "error";
+                            resolve(false);
+                        }
+                    };
+                    image.onerror = () => {
+                        entry.status = "error";
+                        resolve(false);
+                    };
+                    image.src = source;
+                });
+                photoCache.set(source, entry);
+                return entry.promise;
+            }
+
+            async function preloadPhotos() {
+                const initial = [...new Set(galleryItems.map((item) => item.index))];
+                const queue = [...initial, ...photoUrls.map((_, index) => index).filter((index) => !initial.includes(index))];
+                let cursor = 0;
+                async function worker() {
+                    while (cursor < queue.length) {
+                        const index = queue[cursor++];
+                        if (await preloadPhoto(index)) photosLoaded++;
+                        photosSettled++;
+                    }
+                }
+                await Promise.all(Array.from({ length: 4 }, worker));
+                if (photosLoaded > 0 && photosLoaded < photoUrls.length) {
+                    // 个别照片失败时，重新用已缓存的照片排版，避免空白或损坏图片。
+                    lastGalleryWidth = 0;
+                    relayoutGallery();
+                }
+                // 实际画廊节点也提前完成解码，避免遮罩消失时集中解码。
+                await Promise.all(galleryItems.map((item) => item.el.decode().catch(() => {})));
+                photosReady = true;
+            }
 
             // 手机端两列，电脑端三列；新照片从当前滚动位置开始排
             function layoutColumns() {
@@ -884,8 +851,9 @@
             // **选图：排除所有还在页面上的照片，再从最久没出现过的一半里随机挑，保证同屏不重复**
             function pickPhoto() {
                 const onPage = new Set(galleryItems.map((item) => item.index));
-                let candidates = photoUrls.map((_, i) => i).filter((i) => !onPage.has(i));
-                if (candidates.length === 0) candidates = photoUrls.map((_, i) => i);
+                const available = photoUrls.map((_, i) => i).filter((i) => photoCache.get(photoSource(i))?.status !== "error");
+                let candidates = available.filter((i) => !onPage.has(i));
+                if (candidates.length === 0) candidates = available;
                 candidates.sort((a, b) => lastShownAt[a] - lastShownAt[b]);
                 const pool = candidates.slice(0, Math.max(1, Math.ceil(candidates.length / 2)));
                 return pool[Math.floor(Math.random() * pool.length)];
@@ -900,17 +868,18 @@
 
                 const img = document.createElement("img");
                 img.className = "gallery-item";
-                // 手机端自动选 600px 缩略图，减轻解码和内存压力；电脑端用原图
-                img.srcset = `${photoUrls[index].replace("/images/", "/images/thumb/")} 600w, ${photoUrls[index]} 1050w`;
-                img.sizes = `${Math.round(columnWidth)}px`;
-                img.src = photoUrls[index];
+                img.src = photoSource(index);
                 img.alt = "";
                 img.decoding = "async";
+                img.loading = "eager";
+                img.fetchPriority = isLoaded ? "auto" : "high";
                 img.style.left = `${column * (columnWidth + GALLERY_GAP)}px`;
                 img.style.top = `${top}px`;
                 img.style.width = `${columnWidth}px`;
                 img.style.height = `${height}px`;
                 track.appendChild(img);
+                // 窗口变宽需要更清晰的版本时，同样提前缓存。
+                if (isLoaded) preloadPhoto(index);
 
                 galleryItems.push({ index, bottom: top + height, el: img });
                 columnHeights[column] = top + height + GALLERY_GAP;
@@ -919,6 +888,7 @@
 
             // 补齐屏幕下方的照片，回收已经滚出顶部的照片
             function fillGallery() {
+                if (photosSettled === photoUrls.length && photosLoaded === 0) return;
                 const targetBottom = scrollPosition + viewportHeight * (1 + BUFFER_SCREENS);
                 while (Math.min(...columnHeights) < targetBottom) addPhoto();
 
@@ -957,64 +927,16 @@
                 displayedProgress = percent;
                 const progressText = document.getElementById("progress-text");
                 if (progressText) {
-                    progressText.textContent = percent >= 100 ? "准备好啦 100%" : `加载中... ${percent}%`;
+                    progressText.textContent = percent >= 100 ? "宫殿搭好啦 100%" : `收藏回忆中... ${percent}%`;
                 }
             }
 
-            // 固定时间加载逻辑
-            let loadingStartTime = performance.now();
-            const loadingDuration = 2400;
-
-            // 爱心爆炸动画函数
-            function playHeartExplosion() {
-                const particleCount = isMobileViewport ? 42 : 62;
-                const container = document.getElementById("loading-screen");
-                const centerX = window.innerWidth / 2;
-                const centerY = window.innerHeight / 2;
-                
-                for (let i = 0; i < particleCount; i++) {
-                    const particle = document.createElement("div");
-                    particle.className = "heart-explosion";
-                    
-                    // 随机方向和距离
-                    const angle = Math.random() * Math.PI * 2;
-                    const distance = 78 + Math.random() * Math.min(window.innerWidth, window.innerHeight) * 0.22;
-                    const tx = Math.cos(angle) * distance;
-                    const ty = Math.sin(angle) * distance - Math.random() * 46;
-                    const size = isMobileViewport ? 7 + Math.random() * 9 : 8 + Math.random() * 12;
-                    
-                    particle.style.setProperty('--tx', `${tx}px`);
-                    particle.style.setProperty('--ty', `${ty}px`);
-                    particle.style.setProperty('--rotate', `${-45 + Math.random() * 160}deg`);
-                    particle.style.setProperty('--scale', `${0.42 + Math.random() * 0.95}`);
-                    particle.style.left = `${centerX}px`;
-                    particle.style.top = `${centerY}px`;
-                    particle.style.backgroundColor = `hsl(${330 + Math.random() * 36}, 96%, ${58 + Math.random() * 13}%)`;
-                    particle.style.animation = `explode ${0.68 + Math.random() * 0.32}s cubic-bezier(.12,.72,.26,1) ${Math.random() * 0.08}s forwards`;
-                    particle.style.width = `${size}px`;
-                    particle.style.height = `${size}px`;
-                    
-                    container.appendChild(particle);
-                    
-                    // 动画结束后移除元素
-                    setTimeout(() => {
-                        particle.remove();
-                    }, 1100);
-                }
-            }
-
-            // **1. 初始化：排满一屏半的照片**
+            // 首屏先请求，再以四路并发预加载相册的其余照片。
             function initializeGallery() {
                 relayoutGallery();
-
-                if (shouldSkipIntro) {
-                    isIntroAnimating = false;
-                    loadingScreen.classList.add("hidden");
-                    isLoaded = true;
-                    requestAnimationFrame(autoScroll);
-                } else {
-                    loadingStartTime = performance.now();
-                }
+                loadingStartTime = performance.now();
+                preloadPhotos();
+                if (shouldSkipIntro) revealGallery();
             }
 
             // **2. 自动滚动：只移动轨道，顺带补图和回收**
@@ -1028,16 +950,22 @@
                 const deltaSeconds = Math.min((now - lastScrollTime) / 1000, 0.05);
                 lastScrollTime = now;
 
-                scrollPosition += scrollSpeed * deltaSeconds;
+                const nextPosition = scrollPosition + scrollSpeed * deltaSeconds;
+                const hasPendingPhoto = galleryItems.some((item) => {
+                    const top = parseFloat(item.el.style.top);
+                    return item.bottom > scrollPosition && top < nextPosition + viewportHeight + 100 &&
+                        (!item.el.complete || item.el.naturalWidth === 0);
+                });
+                // 返回首页或旋转屏幕后，等即将入屏的图片准备好再滚动。
+                if (!hasPendingPhoto) scrollPosition = nextPosition;
                 track.style.transform = `translate3d(0, ${-scrollPosition}px, 0)`;
                 fillGallery();
 
                 requestAnimationFrame(autoScroll);
             }
 
-            createParticles(); // 创建粒子
-            initializeGallery(); // 开始加载图片
-            drawParticles(); // 先绘制空白爱心
+            initializeGallery(); // 提前加载照片
+            drawPalace();
             requestAnimationFrame(renderIntro);
         });
     </script>
