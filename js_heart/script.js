@@ -36,26 +36,43 @@ let heart = null;
 let sampler = null;
 let originHeart = null;
 // 本地生成立体爱心（原先从 codepen 加载 OBJ，被跨域拦截导致心脏不显示）
-function smoothstep(edge0, edge1, x) {
-  const t = Math.min(Math.max((x - edge0) / (edge1 - edge0), 0), 1);
-  return t * t * (3 - 2 * t);
+// 标准三维爱心隐函数（Taubin heart）：x 宽、y 高、z 厚度，F < 0 为内部；底部天然收成一个尖点
+function heartField(x, y, z) {
+  const a = x * x + 2.25 * z * z + y * y - 1;
+  return a * a * a - x * x * y * y * y - 0.1125 * z * z * y * y * y;
 }
 
-function createHeartGeometry(uSegments = 128, vSegments = 64) {
+const TIP_BOTTOM = -1; // 方程的最低点（正下方射线与曲面的交点）
+const TIP_START = 0; // 从这个高度开始往下收尖
+
+// 从中心向各方向发射射线，取第一次穿出曲面的位置作为网格顶点
+function createHeartGeometry(uSegments = 128, vSegments = 96) {
   const vertices = [];
   const indices = [];
-  const depth = 7; // 前后最大厚度
   for (let j = 0; j <= vSegments; j++) {
-    const t = Math.sin(-Math.PI / 2 + (j / vSegments) * Math.PI); // 前后位置 -1 ~ 1
+    const phi = (j / vSegments) * Math.PI; // 从正上方到正下方
     for (let i = 0; i <= uSegments; i++) {
-      const u = (i / uSegments) * Math.PI * 2; // 经典爱心曲线
-      const x = 16 * Math.pow(Math.sin(u), 3);
-      const y = 13 * Math.cos(u) - 5 * Math.cos(2 * u) - 2 * Math.cos(3 * u) - Math.cos(4 * u);
-      // 截面形状：靠近底尖用菱形（轮廓随厚度线性收拢，任何角度看都汇成一点），往上过渡到圆形（饱满）
-      const tipDistance = Math.abs(u - Math.PI) / Math.PI; // 0 = 底尖，1 = 顶部凹口
-      const q = 1 + smoothstep(0.1, 0.45, tipDistance);
-      const s = Math.pow(1 - Math.pow(Math.abs(t), q), 1 / q);
-      vertices.push(x * s, (y + 2.5) * s, t * depth);
+      const theta = (i / uSegments) * Math.PI * 2;
+      const dx = Math.sin(phi) * Math.cos(theta);
+      const dy = Math.cos(phi);
+      const dz = Math.sin(phi) * Math.sin(theta);
+      let inside = 0;
+      let outside = 0.02;
+      while (heartField(dx * outside, dy * outside, dz * outside) < 0 && outside < 2) {
+        inside = outside;
+        outside += 0.02;
+      }
+      for (let k = 0; k < 30; k++) {
+        const mid = (inside + outside) / 2;
+        if (heartField(dx * mid, dy * mid, dz * mid) < 0) inside = mid;
+        else outside = mid;
+      }
+      // 下半部收尖：方程本身的底部是圆钝的（截面半径 ∝ √高度），越靠近底部水平方向收得越多，
+      // 让截面半径 ∝ 高度，形成圆锥尖；k 从底部 0 到收尖起点 1，k(2-k) 保证衔接处平滑
+      const y = dy * inside;
+      const k = Math.min(Math.max((y - TIP_BOTTOM) / (TIP_START - TIP_BOTTOM), 0), 1);
+      const taper = Math.sqrt(k * (2 - k));
+      vertices.push(dx * inside * taper, y, dz * inside * taper);
     }
   }
   for (let j = 0; j < vSegments; j++) {
@@ -68,7 +85,12 @@ function createHeartGeometry(uSegments = 128, vSegments = 64) {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
   geometry.setIndex(indices);
-  geometry.scale(0.03, 0.03, 0.03);
+  // 居中并缩放到原来的大小（宽约 0.96）
+  geometry.center();
+  geometry.computeBoundingBox();
+  const size = geometry.boundingBox.getSize(new THREE.Vector3());
+  const scale = 0.96 / size.x;
+  geometry.scale(scale, scale, scale);
   return geometry;
 }
 

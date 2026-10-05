@@ -4,10 +4,11 @@ let mainImage = document.getElementById("mainImage");
 let backButton = document.getElementById("backButton"); // 获取返回按钮
 
 let clickCount = 0;  // 记录点击 No 的次数
-const YES_GROW_CLICKS = 3; // 前几次点击 Yes 整体变大，之后铺满一行只加高
-const YES_HEIGHT_STEP = 50; // 后期每次加高 px
+const YES_GROW_CLICKS = 3; // 前几次点击 Yes 整体变大，之后先逐步变宽到接近屏幕宽，再逐步变高
+const YES_STEP = 50; // 后期每次加宽 / 加高 px
 let yesBaseFontSize = null;
-let yesTargetHeight = null; // 记住目标高度，快速连点时不受过渡动画中间值影响
+let yesTargetWidth = null; // 记住目标尺寸，快速连点时不受过渡动画中间值影响
+let yesTargetHeight = null;
 
 // No 按钮的文字变化
 const noTexts = [
@@ -27,12 +28,27 @@ function growYesButton() {
         yesButton.style.fontSize = `${yesBaseFontSize * (1 + clickCount * 0.4)}px`;
         return;
     }
+    let rect = yesButton.getBoundingClientRect();
+    if (yesTargetWidth === null) {
+        // 先把 auto 尺寸固定成像素值，后续变宽/变高才有过渡动画，不会突然跳变
+        yesTargetWidth = rect.width;
+        yesTargetHeight = rect.height;
+        yesButton.style.width = `${rect.width}px`;
+        yesButton.style.height = `${rect.height}px`;
+        yesButton.getBoundingClientRect(); // 强制生效
+    }
+
+    let maxWidth = yesButton.parentElement.clientWidth - 20;
+    if (yesTargetWidth < maxWidth) {
+        yesTargetWidth = Math.min(yesTargetWidth + YES_STEP, maxWidth);
+        yesButton.style.width = `${yesTargetWidth}px`;
+        return;
+    }
+
     // 整体高度 = 其余部分 + Yes 高度（同一时刻测量，过渡动画中也成立）；保证整体不超出屏幕
-    let yesHeight = yesButton.getBoundingClientRect().height;
-    let restHeight = document.querySelector(".container").getBoundingClientRect().height - yesHeight;
-    let maxHeight = Math.max(yesHeight, window.innerHeight - 32 - restHeight);
-    yesTargetHeight = Math.min((yesTargetHeight ?? yesHeight) + YES_HEIGHT_STEP, maxHeight);
-    yesButton.style.width = `${yesButton.parentElement.clientWidth - 20}px`;
+    let restHeight = document.querySelector(".container").getBoundingClientRect().height - rect.height;
+    let maxHeight = Math.max(yesTargetHeight, window.innerHeight - 32 - restHeight);
+    yesTargetHeight = Math.min(yesTargetHeight + YES_STEP, maxHeight);
     yesButton.style.height = `${yesTargetHeight}px`;
 }
 
