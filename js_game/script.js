@@ -4,7 +4,7 @@ let mainImage = document.getElementById("mainImage");
 let backButton = document.getElementById("backButton"); // 获取返回按钮
 
 let clickCount = 0;  // 记录点击 No 的次数
-const YES_WIDTH_CLICKS = 20; // 先分 20 次变宽，接近屏幕宽度后才开始变高
+const YES_WIDTH_CLICKS = 5; // 加宽进度为原来的 4 倍，5 次后接近屏幕宽度，再开始变高
 const YES_HEIGHT_CLICKS = 16; // 再分 16 次逐步增加高度
 let yesBaseWidth = null;
 let yesBaseHeight = null;
@@ -35,7 +35,7 @@ function growYesButton() {
     const widthProgress = Math.min(clickCount / YES_WIDTH_CLICKS, 1);
     yesButton.style.width = `${startWidth + (maxWidth - startWidth) * widthProgress}px`;
 
-    // 前 20 次高度不变，之后逐步填满剩余高度，给上下边缘各留 16px。
+    // 加宽阶段高度不变，之后逐步填满剩余高度，给上下边缘各留 16px。
     const rect = yesButton.getBoundingClientRect();
     const restHeight = document.querySelector(".container").getBoundingClientRect().height - rect.height;
     const maxHeight = Math.max(yesBaseHeight, window.innerHeight - 32 - restHeight);
