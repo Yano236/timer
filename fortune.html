@@ -596,6 +596,186 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
+        /* 好运券兑换：全屏好运秀 */
+        .luck-show {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 35%, #fff6c2 0%, #ffd36b 28%, #ff7aa8 70%, #a3104f 100%);
+            z-index: 3000;
+        }
+
+        .luck-show.show {
+            display: flex;
+            animation: luckFadeIn 0.4s ease;
+        }
+
+        .luck-show.flash::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: white;
+            animation: luckFlash 0.5s ease forwards;
+            z-index: 3;
+        }
+
+        .luck-rays {
+            position: absolute;
+            left: 50%;
+            top: 35%;
+            width: 220vmax;
+            height: 220vmax;
+            background: repeating-conic-gradient(rgba(255, 255, 255, 0.22) 0deg 9deg, transparent 9deg 18deg);
+            transform: translate(-50%, -50%);
+            animation: luckSpin 14s linear infinite;
+        }
+
+        .luck-rain span {
+            position: absolute;
+            top: -8%;
+            animation: luckFall linear forwards;
+            pointer-events: none;
+        }
+
+        .luck-stage {
+            position: relative;
+            z-index: 2;
+            width: min(92vw, 440px);
+            text-align: center;
+        }
+
+        .luck-title {
+            color: white;
+            font-size: 1.6rem;
+            text-shadow: 0 3px 10px rgba(163, 16, 79, 0.45);
+            margin-bottom: 16px;
+            animation: luckBounce 1.2s ease-in-out infinite;
+        }
+
+        .luck-wishes {
+            list-style: none;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .luck-wishes.leave {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .luck-wishes li {
+            margin: 7px 0;
+            padding: 7px 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.92);
+            color: var(--dark);
+            font-size: 0.93rem;
+            font-weight: 600;
+            box-shadow: 0 6px 14px rgba(163, 16, 79, 0.18);
+            animation: wishIn 0.45s cubic-bezier(0.2, 1.4, 0.4, 1);
+        }
+
+        .luck-wishes li:last-child:nth-child(9) {
+            background: linear-gradient(135deg, #ffe066, #ffb703);
+        }
+
+        .luck-bill {
+            display: none;
+            padding: 26px 22px 22px;
+            border-radius: 20px;
+            background: white;
+            color: var(--dark);
+            box-shadow: 0 18px 40px rgba(163, 16, 79, 0.3);
+        }
+
+        .luck-bill.show {
+            display: block;
+            animation: pop 0.4s ease;
+        }
+
+        .bill-label {
+            color: #a0607f;
+            margin-bottom: 14px;
+        }
+
+        .bill-loading {
+            font-size: 1.15rem;
+            font-weight: 600;
+        }
+
+        .bill-dots::after {
+            content: "";
+            animation: billDots 1.2s steps(4) infinite;
+        }
+
+        .bill-punch,
+        .luck-bill #luckClose {
+            display: none;
+        }
+
+        .luck-bill.done .bill-loading {
+            display: none;
+        }
+
+        .luck-bill.done .bill-punch {
+            display: block;
+            color: var(--primary);
+            font-size: 1.45rem;
+            font-weight: 800;
+            line-height: 1.45;
+            margin-bottom: 20px;
+            animation: punchIn 0.7s cubic-bezier(0.2, 1.5, 0.4, 1);
+        }
+
+        .luck-bill.done #luckClose {
+            display: inline-block;
+            animation: pop 0.4s ease 0.5s both;
+        }
+
+        @keyframes luckFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes luckFlash {
+            from { opacity: 0.95; }
+            to { opacity: 0; }
+        }
+
+        @keyframes luckSpin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        @keyframes luckFall {
+            to { transform: translateY(115vh) rotate(540deg); }
+        }
+
+        @keyframes luckBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-6px) scale(1.04); }
+        }
+
+        @keyframes wishIn {
+            from { opacity: 0; transform: translateY(14px) scale(0.85); }
+            to { opacity: 1; transform: none; }
+        }
+
+        @keyframes billDots {
+            0% { content: ""; }
+            25% { content: "."; }
+            50% { content: ".."; }
+            75% { content: "..."; }
+        }
+
+        @keyframes punchIn {
+            0% { opacity: 0; transform: scale(2.4) rotate(-6deg); }
+            60% { opacity: 1; transform: scale(0.92) rotate(2deg); }
+            80% { transform: scale(1.04) rotate(-1deg); }
+            100% { transform: none; }
+        }
+
         /* 响应式设计：手机端 5 个入口排成 3 + 2，第二行居中 */
         @media (max-width: 768px) {
             :root {
@@ -730,6 +910,21 @@
         </div>
     </div>
 
+    <div class="luck-show" id="luckShow" role="dialog" aria-modal="true" aria-label="好运券兑换" aria-live="polite">
+        <div class="luck-rays" aria-hidden="true"></div>
+        <div class="luck-rain" id="luckRain" aria-hidden="true"></div>
+        <div class="luck-stage">
+            <h2 class="luck-title">🍀 好运券 · 兑换成功 🍀</h2>
+            <ul class="luck-wishes" id="luckWishes"></ul>
+            <div class="luck-bill" id="luckBill">
+                <p class="bill-label">本次兑换，金博需要付出：</p>
+                <p class="bill-loading">结算中<span class="bill-dots"></span></p>
+                <p class="bill-punch">其实就是金博啥事也不用干 😏</p>
+                <button type="button" class="pill-button primary" id="luckClose">可恶，被套路了 😤</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const FORTUNES = [
             { level: "大吉", yi: "喝奶茶、晒太阳", ji: "委屈自己", words: "今天的好运多到溢出来。" },
@@ -746,22 +941,27 @@
             { level: "吉", yi: "照照镜子", ji: "说自己不好看", words: "镜子里的人今天也很好看。" }
         ];
 
-        // 奖品：short 是转停后在扇区上揭晓的短名；redeemable 为 false 的不进兑换券（好运券 = 谢谢惠顾）
+        // 奖品：short 是转停后在扇区上揭晓的短名；好运券其实是「谢谢惠顾」，兑换时放一场恶搞好运秀
         const PRIZES = {
             milktea: { icon: "🧋", title: "奶茶券", short: "奶茶券", desc: "金博请喝奶茶一杯，甜度随你挑" },
             song: { icon: "🎤", title: "点歌券", short: "点歌券", desc: "指定一首歌，金博认真唱给你听" },
             sad: { icon: "🥺", title: "八卦券（伤心的事）", short: "伤心八卦", desc: "金博讲一件他伤心的事，不许敷衍" },
             happy: { icon: "😆", title: "八卦券（开心的事）", short: "开心八卦", desc: "金博讲一件他开心的事，越详细越好" },
             class: { icon: "📚", title: "陪上课券", short: "陪上课", desc: "金博陪你上一节课，保证不打扰、不睡着" },
-            luck: { icon: "🍀", title: "好运券", short: "好运券", desc: "今天的好运已经送到你身上啦", redeemable: false }
+            luck: { icon: "🍀", title: "好运券", short: "好运券", desc: "超级好运加持一次，兑换后当场生效" }
         };
 
         // 转盘 20 格（每格 5%），概率 = 格数 / 20：
-        // 开心八卦 25%、伤心八卦 25%、奶茶 15%、陪上课 15%、好运 15%、点歌 5%；同类不相邻（含首尾）
+        // 好运 25%、开心八卦 20%、伤心八卦 20%、奶茶 15%、陪上课 15%、点歌 5%；同类不相邻（含首尾）
         const SLICES = [
-            "happy", "milktea", "sad", "class", "happy", "luck", "sad", "milktea", "happy", "class",
-            "sad", "luck", "happy", "milktea", "sad", "class", "happy", "luck", "sad", "song"
+            "luck", "happy", "sad", "milktea", "luck", "class", "happy", "sad", "luck", "milktea",
+            "class", "happy", "luck", "sad", "milktea", "class", "luck", "happy", "sad", "song"
         ];
+
+        // 指定日期必中的奖品（日期格式同 todayKey，如 "2026-10-9"）
+        const FIXED_PRIZES = {
+            "2026-10-9": "sad"
+        };
         const SLICE_ANGLE = 360 / SLICES.length;
         const SLICE_COLORS = ["#ff5c9d", "#ff9cc7"];
 
@@ -803,6 +1003,13 @@
                 hash = Math.imul(hash, 0x01000193) >>> 0;
             }
             return hash % count;
+        }
+
+        function lotterySlice(dateKey) {
+            const fixed = FIXED_PRIZES[dateKey];
+            if (!fixed) return dailyIndex("dxy-lottery", dateKey, SLICES.length);
+            const candidates = SLICES.flatMap((kind, i) => (kind === fixed ? [i] : []));
+            return candidates[dailyIndex("dxy-lottery", dateKey, candidates.length)];
         }
 
         function dateLabel(key) {
@@ -889,10 +1096,7 @@
 
         function showResult(kind, isToday) {
             const prize = PRIZES[kind];
-            const note = prize.redeemable === false
-                ? `${prize.desc}，明天再来试试手气～`
-                : "已经放进下面的兑换券里啦，明天再来抽新的～";
-            resultBox.innerHTML = `<strong>${isToday ? "🎉 抽中了" : "今天抽中了"} ${prize.icon} ${prize.title}</strong><small>${note}</small>`;
+            resultBox.innerHTML = `<strong>${isToday ? "🎉 抽中了" : "今天抽中了"} ${prize.icon} ${prize.title}</strong><small>已经放进下面的兑换券里啦，明天再来抽新的～</small>`;
             resultBox.classList.add("show");
         }
 
@@ -901,13 +1105,13 @@
             spinButton.disabled = true;
 
             const today = todayKey();
-            const index = dailyIndex("dxy-lottery", today, SLICES.length);
+            const index = lotterySlice(today);
             const kind = SLICES[index];
             // 先记下结果，转到一半关掉页面也不会丢券或重抽
             saveJSON(LOTTERY_KEY, { date: today, slice: index });
-            // 每个日期最多一张券（只清了抽奖记录、没清券夹时不会重复入账）；好运券不入账
-            let coupon = wallet.find((item) => item.date === today) ?? null;
-            if (!coupon && PRIZES[kind].redeemable !== false) {
+            // 每个日期最多一张券（只清了抽奖记录、没清券夹时不会重复入账）
+            let coupon = wallet.find((item) => item.date === today);
+            if (!coupon) {
                 coupon = { id: Date.now(), kind, date: today, used: false };
                 wallet.unshift(coupon);
                 saveJSON(WALLET_KEY, wallet);
@@ -920,7 +1124,7 @@
                 revealSlice(index);
                 setTicket("used");
                 showResult(kind, true);
-                renderCoupons(coupon?.id);
+                renderCoupons(coupon.id);
             });
         });
 
@@ -950,10 +1154,13 @@
             document.getElementById("modalIcon").textContent = prize.icon;
             document.getElementById("modalTitle").textContent = prize.title;
             document.getElementById("modalDesc").textContent = prize.desc;
+            const isLuck = coupon.kind === "luck";
             document.getElementById("modalTip").textContent = coupon.used
-                ? "这张券已经兑换过啦，金博说到做到 ✓"
-                : "📸 截图发给金博，就能兑换啦";
-            document.getElementById("modalRedeem").style.display = coupon.used ? "none" : "";
+                ? (isLuck ? "好运已经生效过啦（金博确实啥也没干）" : "这张券已经兑换过啦，金博说到做到 ✓")
+                : (isLuck ? "✨ 无需截图，点「立即兑换」好运当场生效" : "📸 截图发给金博，就能兑换啦");
+            const redeemButton = document.getElementById("modalRedeem");
+            redeemButton.textContent = isLuck ? "立即兑换" : "我已兑换";
+            redeemButton.style.display = coupon.used ? "none" : "";
             document.getElementById("modalClose").textContent = coupon.used ? "好的" : "先留着";
             modal.classList.add("show");
         }
@@ -968,12 +1175,77 @@
             if (event.target === modal) closeModal();
         });
         document.getElementById("modalRedeem").addEventListener("click", () => {
-            if (activeCoupon) {
-                activeCoupon.used = true;
+            const coupon = activeCoupon;
+            if (coupon) {
+                coupon.used = true;
                 saveJSON(WALLET_KEY, wallet);
             }
             closeModal();
             renderCoupons();
+            if (coupon?.kind === "luck") playLuckShow();
+        });
+
+        // ---------- 好运券兑换：好运秀 + 结尾反转 ----------
+        const LUCK_WISHES = [
+            "祝 dxy 考试全过，蒙的全对 ✍️",
+            "祝 dxy 奶茶永远第二杯半价 🧋",
+            "祝 dxy 出门公交刚好到站，红灯秒变绿灯 🚦",
+            "祝 dxy 抢票一次就中，排队永远第一个 🎫",
+            "祝 dxy 拆快递全是惊喜，拆盲盒全是隐藏款 📦",
+            "祝 dxy 熬夜不长痘，早起不犯困 🌙",
+            "祝 dxy 吃什么都不胖，要胖也只胖萌萌圆脸 🥟",
+            "祝 dxy 天天被南京的太阳偏爱 ☀️",
+            "以上好运，即刻到账 💫"
+        ];
+        const LUCK_RAIN = ["🍀", "✨", "⭐", "💰", "🌟", "🧧"];
+        const luckShow = document.getElementById("luckShow");
+        const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        let rainTimer = null;
+
+        function dropLuck() {
+            const drop = document.createElement("span");
+            drop.textContent = LUCK_RAIN[Math.floor(Math.random() * LUCK_RAIN.length)];
+            drop.style.left = `${Math.random() * 100}%`;
+            drop.style.fontSize = `${18 + Math.random() * 22}px`;
+            drop.style.animationDuration = `${2.4 + Math.random() * 2}s`;
+            document.getElementById("luckRain").appendChild(drop);
+            drop.addEventListener("animationend", () => drop.remove());
+        }
+
+        async function playLuckShow() {
+            const wishes = document.getElementById("luckWishes");
+            const bill = document.getElementById("luckBill");
+            wishes.innerHTML = "";
+            wishes.classList.remove("leave");
+            bill.classList.remove("show", "done");
+            luckShow.classList.add("show");
+            rainTimer = setInterval(dropLuck, 110);
+
+            await sleep(700);
+            for (const wish of LUCK_WISHES) {
+                const line = document.createElement("li");
+                line.textContent = wish;
+                wishes.appendChild(line);
+                await sleep(620);
+            }
+
+            await sleep(700);
+            luckShow.classList.add("flash");
+            wishes.classList.add("leave");
+            await sleep(500);
+            luckShow.classList.remove("flash");
+            wishes.innerHTML = "";
+            bill.classList.add("show");
+
+            await sleep(1800);
+            clearInterval(rainTimer);
+            bill.classList.add("done");
+        }
+
+        document.getElementById("luckClose").addEventListener("click", () => {
+            clearInterval(rainTimer);
+            luckShow.classList.remove("show");
+            document.getElementById("luckRain").innerHTML = "";
         });
 
         // ---------- 初始化 ----------
