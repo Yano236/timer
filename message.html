@@ -305,8 +305,11 @@
     </main>
 
     <script>
-        // Web3Forms 的 Access Key：只能往金博的邮箱发信，写在前端是安全的
+        // 双通道：Server酱推到金博微信（国内稳定），Web3Forms 发邮件备份（服务器在国外，国内可能连不上）
+        // 两个 Key 都只能给金博发消息，写在前端可以接受；被滥用时去官网重置即可
+        const SERVERCHAN_SENDKEY = "SCT435232TKbYRdlpIBUaWxgdyUC6uNN7c";
         const WEB3FORMS_ACCESS_KEY = "dc95fc62-505b-4121-a9fb-6642bc9952bc";
+        const SEND_TIMEOUT_MS = 10000;
         const DRAFT_KEY = "note_draft";
 
         const form = document.getElementById("noteForm");
@@ -328,6 +331,41 @@
             counter.textContent = `${textarea.value.length} / ${textarea.maxLength}`;
         }
 
+        // 超时就放弃，避免国内网络下一直卡在「递送中」
+        async function postWithTimeout(url, options) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), SEND_TIMEOUT_MS);
+            try {
+                const response = await fetch(url, { ...options, signal: controller.signal });
+                return await response.json();
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        async function sendToWechat(message) {
+            const result = await postWithTimeout(`https://sctapi.ftqq.com/${SERVERCHAN_SENDKEY}.send`, {
+                method: "POST",
+                body: new URLSearchParams({ title: "dxy 递来一张小纸条 💌", desp: message })
+            });
+            if (result.code !== 0) throw new Error(result.message);
+        }
+
+        async function sendToEmail(message) {
+            const result = await postWithTimeout("https://api.web3forms.com/submit", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Accept: "application/json" },
+                body: JSON.stringify({
+                    access_key: WEB3FORMS_ACCESS_KEY,
+                    subject: "dxy 递来一张小纸条 💌",
+                    from_name: "dxy 的小纸条",
+                    message,
+                    botcheck: form.botcheck.checked
+                })
+            });
+            if (!result.success) throw new Error(result.message);
+        }
+
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
             const message = textarea.value.trim();
@@ -341,19 +379,11 @@
             statusText.textContent = "";
 
             try {
-                const response = await fetch("https://api.web3forms.com/submit", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", Accept: "application/json" },
-                    body: JSON.stringify({
-                        access_key: WEB3FORMS_ACCESS_KEY,
-                        subject: "dxy 递来一张小纸条 💌",
-                        from_name: "dxy 的小纸条",
-                        message,
-                        botcheck: form.botcheck.checked
-                    })
-                });
-                const result = await response.json();
-                if (!result.success) throw new Error(result.message);
+                // 隐藏字段被勾上说明是机器人：假装成功，两路都不发
+                // 否则任意一路成功就算送达，另一路继续在后台发送
+                if (!form.botcheck.checked) {
+                    await Promise.any([sendToWechat(message), sendToEmail(message)]);
+                }
 
                 localStorage.removeItem(DRAFT_KEY);
                 form.classList.add("sending");
