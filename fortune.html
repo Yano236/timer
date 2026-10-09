@@ -867,14 +867,14 @@
                     <span class="fortune-tag tag-ji">忌</span><span id="fortuneJi"></span>
                 </div>
                 <p class="fortune-words" id="fortuneWords"></p>
-                <div class="fortune-bonus">🎫 今日运势附赠：抽奖券 × 1，往下滑去转盘抽奖吧～</div>
+                <div class="fortune-bonus" id="fortuneBonus"></div>
                 <p class="fortune-next">每天只能抽一次，明天再来看看吧</p>
             </article>
         </section>
 
         <section class="lottery" id="lottery">
             <h2 class="section-title">幸运转盘 🎡</h2>
-            <p class="section-hint">用今日运势送的抽奖券转一次，转到什么就是什么</p>
+            <p class="section-hint">用今日运势送的抽奖券转一转，转到什么就是什么</p>
 
             <div class="ticket empty" id="ticket">
                 <span id="ticketLabel">🎫 先抽今日运势，领取抽奖券</span>
@@ -958,14 +958,19 @@
             "class", "happy", "luck", "sad", "milktea", "class", "luck", "happy", "sad", "song"
         ];
 
-        // 指定日期必中的奖品（日期格式同 todayKey，如 "2026-10-9"）
+        // 指定日期每次抽奖必中的奖品，按第几次抽排列（日期格式同 todayKey，如 "2026-10-9"）
         const FIXED_PRIZES = {
-            "2026-10-9": "sad"
+            "2026-10-9": ["sad", "luck"] // 上线首日：第 1 次伤心八卦，加送的第 2 次必中好运券
+        };
+
+        // 指定日期额外加送的抽奖券（平时每天 1 张）
+        const BONUS_TICKETS = {
+            "2026-10-9": { count: 1, reason: "上线首日额外加送一张 🎉" }
         };
         const SLICE_ANGLE = 360 / SLICES.length;
         const SLICE_COLORS = ["#ff5c9d", "#ff9cc7"];
 
-        // 本机存储：今日运势 { date }，今日抽奖 { date, slice }，兑换券 [{ id, kind, date, used }]
+        // 本机存储：今日运势 { date }，今日抽奖 { date, slices: [每次转到的格] }，兑换券 [{ id, kind, date, spin, used }]
         const FORTUNE_KEY = "dxy_fortune";
         const LOTTERY_KEY = "dxy_lottery";
         const WALLET_KEY = "dxy_wallet";
@@ -1005,11 +1010,24 @@
             return hash % count;
         }
 
-        function lotterySlice(dateKey) {
-            const fixed = FIXED_PRIZES[dateKey];
-            if (!fixed) return dailyIndex("dxy-lottery", dateKey, SLICES.length);
+        // 第 spin 次（从 0 开始）转到哪一格；第 1 次沿用原来的盐，保证老结果不变
+        function lotterySlice(dateKey, spin) {
+            const salt = spin === 0 ? "dxy-lottery" : `dxy-lottery#${spin}`;
+            const fixed = FIXED_PRIZES[dateKey]?.[spin];
+            if (!fixed) return dailyIndex(salt, dateKey, SLICES.length);
             const candidates = SLICES.flatMap((kind, i) => (kind === fixed ? [i] : []));
-            return candidates[dailyIndex("dxy-lottery", dateKey, candidates.length)];
+            return candidates[dailyIndex(salt, dateKey, candidates.length)];
+        }
+
+        function ticketsFor(dateKey) {
+            return 1 + (BONUS_TICKETS[dateKey]?.count ?? 0);
+        }
+
+        // 今天已经转过的格子（兼容旧格式 { date, slice }）
+        function loadTodaySpins() {
+            const record = loadJSON(LOTTERY_KEY, null);
+            if (!record || record.date !== todayKey()) return [];
+            return record.slices ?? [record.slice];
         }
 
         function dateLabel(key) {
@@ -1019,6 +1037,9 @@
 
         let wallet = loadJSON(WALLET_KEY, []);
         let rotation = 0;
+        let fortuneDrawn = false;
+        let todaySpins = [];
+        let spinning = false;
 
         // ---------- 今日运势 ----------
         function showDate() {
@@ -1035,6 +1056,9 @@
             document.getElementById("fortuneYi").textContent = fortune.yi;
             document.getElementById("fortuneJi").textContent = fortune.ji;
             document.getElementById("fortuneWords").textContent = fortune.words;
+            const bonus = BONUS_TICKETS[todayKey()];
+            document.getElementById("fortuneBonus").textContent =
+                `🎫 今日运势附赠：抽奖券 × ${ticketsFor(todayKey())}${bonus ? `（${bonus.reason}）` : ""}，往下滑去转盘抽奖吧～`;
             drawButton.style.display = "none";
             fortuneCard.classList.add("show");
         }
@@ -1044,26 +1068,35 @@
             drawButton.classList.add("shaking");
             setTimeout(() => {
                 saveJSON(FORTUNE_KEY, { date: todayKey() });
+                fortuneDrawn = true;
                 renderFortune();
-                setTicket("ready");
+                renderTicket();
             }, 1200);
         });
 
-        // 抽奖券三种状态：locked 还没抽签 / ready 可以转 / used 今天已转过
-        function setTicket(state) {
+        function remainingTickets() {
+            return fortuneDrawn ? Math.max(0, ticketsFor(todayKey()) - todaySpins.length) : 0;
+        }
+
+        // 抽奖券三种状态：locked 还没抽签 / ready 还有券可以转 / used 今天的券都用完了
+        function renderTicket() {
+            const remaining = remainingTickets();
+            const state = !fortuneDrawn ? "locked" : remaining > 0 ? "ready" : "used";
             const ticket = document.getElementById("ticket");
-            const label = document.getElementById("ticketLabel");
-            const count = document.getElementById("ticketCount");
             ticket.classList.toggle("empty", state !== "ready");
             ticket.classList.toggle("ready", state === "ready");
-            label.textContent = {
+            document.getElementById("ticketLabel").textContent = {
                 locked: "🎫 先抽今日运势，领取抽奖券",
                 ready: "🎫 今日抽奖券",
                 used: "🎫 今日抽奖券已用完"
             }[state];
-            count.textContent = state === "ready" ? "× 1" : "× 0";
-            spinButton.disabled = state !== "ready";
-            spinButton.textContent = { locked: "先抽签", ready: "抽！", used: "明天见" }[state];
+            document.getElementById("ticketCount").textContent = `× ${remaining}`;
+            spinButton.disabled = state !== "ready" || spinning;
+            spinButton.textContent = {
+                locked: "先抽签",
+                ready: todaySpins.length > 0 ? "再抽！" : "抽！",
+                used: "明天见"
+            }[state];
         }
 
         // ---------- 转盘 ----------
@@ -1077,6 +1110,14 @@
                 label.style.transform = `rotate(${i * SLICE_ANGLE + SLICE_ANGLE / 2}deg)`;
                 label.innerHTML = "<span>?</span>";
                 wheel.appendChild(label);
+            });
+        }
+
+        // 再转之前把上一次揭晓的格子收回成问号
+        function hideReveals() {
+            wheel.querySelectorAll(".slice-label.revealed").forEach((label) => {
+                label.classList.remove("revealed");
+                label.firstChild.textContent = "?";
             });
         }
 
@@ -1094,38 +1135,58 @@
             return rotation + extraTurns * 360 + target + jitter;
         }
 
-        function showResult(kind, isToday) {
-            const prize = PRIZES[kind];
-            resultBox.innerHTML = `<strong>${isToday ? "🎉 抽中了" : "今天抽中了"} ${prize.icon} ${prize.title}</strong><small>已经放进下面的兑换券里啦，明天再来抽新的～</small>`;
+        // fresh：刚转完只报这一次；否则（刷新页面）列出今天所有结果
+        function showResult(fresh) {
+            const names = (fresh ? todaySpins.slice(-1) : todaySpins)
+                .map((index) => `${PRIZES[SLICES[index]].icon} ${PRIZES[SLICES[index]].title}`);
+            const remaining = remainingTickets();
+            const note = remaining > 0
+                ? `已经放进下面的兑换券里啦，还有 ${remaining} 张抽奖券，再转一次吧！`
+                : "已经放进下面的兑换券里啦，明天再来抽新的～";
+            resultBox.innerHTML = `<strong>${fresh ? "🎉 抽中了" : "今天抽中了"} ${names.join("、")}</strong><small>${note}</small>`;
+            resultBox.classList.remove("show");
+            void resultBox.offsetWidth; // 重新触发弹出动画
             resultBox.classList.add("show");
         }
 
         spinButton.addEventListener("click", () => {
-            if (spinButton.disabled) return;
-            spinButton.disabled = true;
+            if (spinButton.disabled || remainingTickets() === 0) return;
+            spinning = true;
 
             const today = todayKey();
-            const index = lotterySlice(today);
+            const spin = todaySpins.length;
+            const index = lotterySlice(today, spin);
             const kind = SLICES[index];
             // 先记下结果，转到一半关掉页面也不会丢券或重抽
-            saveJSON(LOTTERY_KEY, { date: today, slice: index });
-            // 每个日期最多一张券（只清了抽奖记录、没清券夹时不会重复入账）
-            let coupon = wallet.find((item) => item.date === today);
+            todaySpins.push(index);
+            saveJSON(LOTTERY_KEY, { date: today, slices: todaySpins });
+            // 每天每次抽奖最多一张券（只清了抽奖记录、没清券夹时不会重复入账；旧券没有 spin 字段，视为第 1 次）
+            let coupon = wallet.find((item) => item.date === today && (item.spin ?? 0) === spin);
             if (!coupon) {
-                coupon = { id: Date.now(), kind, date: today, used: false };
+                coupon = { id: Date.now(), kind, date: today, spin, used: false };
                 wallet.unshift(coupon);
                 saveJSON(WALLET_KEY, wallet);
             }
+            renderTicket();
+            hideReveals();
+            resultBox.classList.remove("show");
 
             rotation = rotationFor(index, 6);
             wheel.style.transform = `rotate(${rotation}deg)`;
-            wheel.addEventListener("transitionend", function onStop() {
+            // 转盘停下：以 transitionend 为准，再加一个兜底定时器（切到后台时事件可能延迟），只执行一次
+            let stopped = false;
+            const onStop = () => {
+                if (stopped) return;
+                stopped = true;
                 wheel.removeEventListener("transitionend", onStop);
+                spinning = false;
                 revealSlice(index);
-                setTicket("used");
-                showResult(kind, true);
+                renderTicket();
+                showResult(true);
                 renderCoupons(coupon.id);
-            });
+            };
+            wheel.addEventListener("transitionend", onStop);
+            setTimeout(onStop, 5000);
         });
 
         // ---------- 我的兑换券 ----------
@@ -1251,21 +1312,21 @@
         // ---------- 初始化 ----------
         showDate();
         buildWheel();
-        const today = todayKey();
-        const fortuneDrawn = loadJSON(FORTUNE_KEY, null)?.date === today;
-        const lotteryRecord = loadJSON(LOTTERY_KEY, null);
+        fortuneDrawn = loadJSON(FORTUNE_KEY, null)?.date === todayKey();
+        todaySpins = loadTodaySpins();
         if (fortuneDrawn) renderFortune();
-        if (lotteryRecord && lotteryRecord.date === today) {
-            // 今天已经转过：转盘直接停在结果上
+        if (todaySpins.length > 0) {
+            // 今天已经转过：转盘直接停在最近一次的结果上（不播动画），之后若还有券仍可正常转
+            const last = todaySpins[todaySpins.length - 1];
             wheel.style.transition = "none";
-            rotation = rotationFor(lotteryRecord.slice, 0);
+            rotation = rotationFor(last, 0);
             wheel.style.transform = `rotate(${rotation}deg)`;
-            revealSlice(lotteryRecord.slice);
-            setTicket("used");
-            showResult(SLICES[lotteryRecord.slice], false);
-        } else {
-            setTicket(fortuneDrawn ? "ready" : "locked");
+            void wheel.offsetWidth;
+            wheel.style.transition = "";
+            revealSlice(last);
+            showResult(false);
         }
+        renderTicket();
         renderCoupons();
     </script>
 </body>
