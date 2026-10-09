@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>今日运势 | Always Following dxy</title>
+    <title>每日抽奖 | Always Following dxy</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -107,167 +107,169 @@
             margin-bottom: 20px;
         }
 
-        /* 今日运势 */
-        .fortune {
+        /* 每日抽奖 */
+        .lottery {
             display: flex;
             flex-direction: column;
             align-items: center;
             margin-bottom: 44px;
+            /* 转盘旋转时外接方框会变大（对角线），裁掉以免手机端页面被撑宽 */
+            overflow: hidden;
         }
 
-        .fortune-date {
-            color: #a0607f;
-            font-size: 0.9rem;
-            margin-bottom: 18px;
-        }
-
-        /* 签筒 */
-        .draw-button {
+        .ticket {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 14px;
-            border: none;
-            background: none;
-            cursor: pointer;
+            gap: 10px;
+            margin: 14px 0 26px;
+            padding: 10px 22px;
+            border: 2px dashed #ff8cc6;
+            border-radius: 14px;
+            background: #fffdf8;
             color: var(--dark);
-            font-size: 1rem;
             font-weight: 600;
         }
 
-        .tube {
-            position: relative;
-            width: 96px;
-            height: 128px;
-            margin-top: 34px;
-            border-radius: 14px 14px 22px 22px;
-            background: linear-gradient(90deg, #c2185b, #ff5c9d 45%, #c2185b);
-            box-shadow: 0 14px 28px rgba(109, 0, 57, 0.25);
-            transform-origin: 50% 90%;
+        .ticket.empty {
+            border-color: #e3cbd7;
+            color: #b88aa1;
         }
 
-        .tube::after {
-            content: "签";
+        .ticket-count {
+            padding: 2px 10px;
+            border-radius: 20px;
+            background: var(--primary);
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .ticket.empty .ticket-count {
+            background: #d9c2cd;
+        }
+
+        /* 转盘：扇区只显示问号，转停后才揭晓指针所指的那一格 */
+        .wheel-wrap {
+            position: relative;
+            width: min(80vw, 320px);
+            aspect-ratio: 1;
+        }
+
+        .pointer {
+            position: absolute;
+            left: 50%;
+            top: -14px;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid var(--dark);
+            transform: translateX(-50%);
+            filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.25));
+            z-index: 2;
+        }
+
+        .wheel {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 8px solid white;
+            box-shadow: 0 16px 36px rgba(109, 0, 57, 0.22);
+            transition: transform 4.8s cubic-bezier(0.15, 0.7, 0.12, 1);
+        }
+
+        .slice-label {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .slice-label span {
+            position: absolute;
+            left: 50%;
+            top: 9%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-shadow: 0 1px 3px rgba(109, 0, 57, 0.35);
+            white-space: nowrap;
+            transition: all 0.4s ease;
+        }
+
+        .slice-label.revealed span {
+            top: 11%;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background: white;
+            color: var(--primary);
+            font-size: 0.85rem;
+            text-shadow: none;
+            box-shadow: 0 4px 10px rgba(109, 0, 57, 0.25);
+        }
+
+        .spin-button {
             position: absolute;
             left: 50%;
             top: 50%;
-            transform: translate(-50%, -50%);
-            width: 44px;
-            height: 44px;
+            width: 76px;
+            height: 76px;
+            border: 5px solid white;
             border-radius: 50%;
-            background: #fff3d6;
-            color: #c2185b;
-            font-size: 1.3rem;
+            background: var(--primary);
+            color: white;
+            font-size: 1.15rem;
             font-weight: 700;
-            line-height: 44px;
-            text-align: center;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 6px 16px rgba(109, 0, 57, 0.3);
+            cursor: pointer;
+            z-index: 2;
         }
 
-        .stick {
-            position: absolute;
-            bottom: 100%;
-            width: 10px;
-            height: 46px;
-            border-radius: 4px 4px 0 0;
-            background: #f3c98b;
+        .spin-button:disabled {
+            background: #d9c2cd;
+            cursor: default;
         }
 
-        .stick:nth-child(1) { left: 22px; height: 40px; transform: rotate(-8deg); }
-        .stick:nth-child(2) { left: 43px; height: 50px; }
-        .stick:nth-child(3) { left: 64px; height: 38px; transform: rotate(8deg); }
-
-        .draw-button.shaking .tube {
-            animation: shake 0.24s ease-in-out 5;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: rotate(0deg); }
-            25% { transform: rotate(-12deg); }
-            75% { transform: rotate(12deg); }
-        }
-
-        /* 签文 */
-        .fortune-card {
+        .lottery-result {
             display: none;
-            width: min(100%, 420px);
-            padding: 26px 24px 22px;
-            border-radius: 18px;
+            margin-top: 24px;
+            padding: 16px 22px;
+            border-radius: 16px;
             background: #fffdf8;
-            box-shadow: 0 18px 40px rgba(109, 0, 57, 0.14);
+            box-shadow: 0 12px 28px rgba(109, 0, 57, 0.12);
             text-align: center;
+            color: var(--dark);
         }
 
-        .fortune-card.show {
+        .lottery-result.show {
             display: block;
             animation: pop 0.5s ease;
         }
 
-        .fortune-level {
-            display: inline-block;
-            padding: 6px 22px;
-            border-radius: 30px;
-            color: white;
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: 4px;
-            margin-bottom: 18px;
+        .lottery-result strong {
+            display: block;
+            font-size: 1.2rem;
+            margin-bottom: 4px;
         }
 
-        .level-大吉 { background: linear-gradient(135deg, #ff3b8d, #ff8a3d); }
-        .level-中吉 { background: #ff5c9d; }
-        .level-小吉 { background: #f48fb1; }
-        .level-吉 { background: #c48da7; }
-
-        .fortune-rows {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 8px 12px;
-            text-align: left;
-            margin-bottom: 16px;
+        .lottery-result small {
+            color: #a0607f;
         }
 
-        .fortune-tag {
-            padding: 2px 10px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            height: fit-content;
-        }
-
-        .tag-yi { background: #e3f6ea; color: #23864b; }
-        .tag-ji { background: #fde4e4; color: #c0392b; }
-
-        .fortune-words {
-            color: var(--dark);
-            font-size: 1.05rem;
-            line-height: 1.6;
-        }
-
-        .fortune-bonus {
-            margin-top: 16px;
-            padding: 10px 14px;
-            border-radius: 12px;
-            background: #fff0f6;
-            color: #c0306f;
-            font-size: 0.92rem;
-            font-weight: 600;
-        }
-
-        .fortune-bonus:empty {
-            display: none;
-        }
-
-        .fortune-next {
-            margin-top: 14px;
-            color: #b88aa1;
-            font-size: 0.82rem;
-        }
-
-        /* 兑换券 */
+        /* 我的兑换券 */
         .coupons {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 16px;
+        }
+
+        .coupons-empty {
+            grid-column: 1 / -1;
+            padding: 22px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.55);
+            color: #a0607f;
+            text-align: center;
         }
 
         .coupon {
@@ -319,20 +321,10 @@
             line-height: 1.45;
         }
 
-        .coupon.locked {
-            border-left-color: #d9c2cd;
-            background-color: rgba(255, 255, 255, 0.55);
-            cursor: default;
-        }
-
-        .coupon.locked:hover {
-            transform: none;
-            box-shadow: 0 8px 20px rgba(109, 0, 57, 0.1);
-        }
-
-        .coupon.locked .coupon-title,
-        .coupon.locked .coupon-desc {
-            color: #b9a3ae;
+        .coupon-date {
+            color: #b88aa1;
+            font-size: 0.75rem;
+            margin-top: 4px;
         }
 
         .coupon.used {
@@ -342,7 +334,8 @@
 
         .coupon.used .coupon-icon,
         .coupon.used .coupon-title,
-        .coupon.used .coupon-desc {
+        .coupon.used .coupon-desc,
+        .coupon.used .coupon-date {
             opacity: 0.45;
         }
 
@@ -511,37 +504,32 @@
             <a href="game.html" class="nav-link">互动小游戏</a>
             <a href="heart.html" class="nav-link">瞅瞅金博的心脏</a>
             <a href="message.html" class="nav-link">给金博递纸条</a>
-            <a href="fortune.html" class="nav-link active">今日运势</a>
+            <a href="fortune.html" class="nav-link active">每日抽奖</a>
         </div>
     </nav>
 
     <main class="page">
-        <section class="fortune">
-            <h1 class="section-title">dxy 的今日运势 🔮</h1>
-            <p class="fortune-date" id="fortuneDate"></p>
+        <section class="lottery">
+            <h1 class="section-title">dxy 的每日抽奖 🎡</h1>
+            <p class="section-hint">每天送你一张抽奖券，转到什么就是什么</p>
 
-            <button type="button" class="draw-button" id="drawButton">
-                <span class="tube" aria-hidden="true">
-                    <span class="stick"></span><span class="stick"></span><span class="stick"></span>
-                </span>
-                <span>摇一摇，抽今日签</span>
-            </button>
+            <div class="ticket" id="ticket">
+                <span>🎫 今日抽奖券</span>
+                <span class="ticket-count" id="ticketCount">× 1</span>
+            </div>
 
-            <article class="fortune-card" id="fortuneCard" aria-live="polite">
-                <div class="fortune-level" id="fortuneLevel"></div>
-                <div class="fortune-rows">
-                    <span class="fortune-tag tag-yi">宜</span><span id="fortuneYi"></span>
-                    <span class="fortune-tag tag-ji">忌</span><span id="fortuneJi"></span>
-                </div>
-                <p class="fortune-words" id="fortuneWords"></p>
-                <div class="fortune-bonus" id="fortuneBonus"></div>
-                <p class="fortune-next">每天只能抽一次，明天再来看看吧</p>
-            </article>
+            <div class="wheel-wrap">
+                <div class="pointer" aria-hidden="true"></div>
+                <div class="wheel" id="wheel" aria-hidden="true"></div>
+                <button type="button" class="spin-button" id="spinButton">抽！</button>
+            </div>
+
+            <div class="lottery-result" id="lotteryResult" aria-live="polite"></div>
         </section>
 
         <section>
-            <h2 class="section-title">dxy 专属兑换券 🎟️</h2>
-            <p class="section-hint">点开想用的券，截图发给金博就能兑换；抽到大吉还能解锁新券</p>
+            <h2 class="section-title">我的兑换券 🎟️</h2>
+            <p class="section-hint">点开想用的券，截图发给金博就能兑换</p>
             <div class="coupons" id="coupons"></div>
         </section>
     </main>
@@ -552,7 +540,7 @@
             <h3 class="modal-title" id="modalTitle"></h3>
             <p class="modal-desc" id="modalDesc"></p>
             <p class="modal-tip" id="modalTip"></p>
-            <div class="modal-actions" id="modalActions">
+            <div class="modal-actions">
                 <button type="button" class="pill-button ghost" id="modalClose">先留着</button>
                 <button type="button" class="pill-button primary" id="modalRedeem">我已兑换</button>
             </div>
@@ -560,40 +548,26 @@
     </div>
 
     <script>
-        // 兑换券：前 INITIAL_UNLOCKED 张开局可用，其余按顺序在抽到大吉时解锁
-        const COUPONS = [
-            { id: "milktea", icon: "🧋", title: "奶茶券", desc: "金博请喝奶茶一杯，甜度随你挑" },
-            { id: "chat", icon: "📞", title: "陪聊券", desc: "随时召唤金博陪聊，聊到你困为止" },
-            { id: "song", icon: "🎤", title: "点歌券", desc: "指定一首歌，金博认真唱给你听" },
-            { id: "food", icon: "🍲", title: "投喂券", desc: "想吃什么说一声，金博负责安排" },
-            { id: "walk", icon: "🛍️", title: "陪逛券", desc: "陪逛一次，负责拎包和拍好看的照片" },
-            { id: "errand", icon: "🏃", title: "跑腿券", desc: "金博跑腿一次，使命必达" },
-            { id: "sorry", icon: "🙇", title: "免生气券", desc: "金博惹你不开心时使用，立刻认错哄好" },
-            { id: "pinch", icon: "🤏", title: "反向捏脸券", desc: "金博的脸给你捏一次，不许喊疼" }
-        ];
-        const INITIAL_UNLOCKED = 3;
+        // 奖品：short 是转停后在扇区上揭晓的短名
+        const PRIZES = {
+            milktea: { icon: "🧋", title: "奶茶券", short: "奶茶券", desc: "金博请喝奶茶一杯，甜度随你挑" },
+            song: { icon: "🎤", title: "点歌券", short: "点歌券", desc: "指定一首歌，金博认真唱给你听" },
+            sad: { icon: "🥺", title: "八卦券（伤心的事）", short: "伤心八卦", desc: "金博讲一件他伤心的事，不许敷衍" },
+            happy: { icon: "😆", title: "八卦券（开心的事）", short: "开心八卦", desc: "金博讲一件他开心的事，越详细越好" }
+        };
 
-        const FORTUNES = [
-            { level: "大吉", yi: "喝奶茶、晒太阳", ji: "委屈自己", words: "今天的好运多到溢出来，分你一张券。" },
-            { level: "大吉", yi: "出门走走、拍好看的照片", ji: "宅在家发呆", words: "南京第一美少女今日气场全开。" },
-            { level: "大吉", yi: "吃顿好的", ji: "减肥", words: "吃饱了才有力气可爱。" },
-            { level: "中吉", yi: "早点睡", ji: "熬夜刷手机", words: "睡饱的萌萌圆脸最好捏。" },
-            { level: "中吉", yi: "听喜欢的歌", ji: "想太多", words: "烦心事交给明天的自己。" },
-            { level: "中吉", yi: "多喝热水", ji: "喝冰的", words: "金博叮嘱的，不许嫌啰嗦。" },
-            { level: "中吉", yi: "找人聊天", ji: "一个人生闷气", words: "有什么不开心，可以递张纸条给金博。" },
-            { level: "小吉", yi: "慢慢来", ji: "着急", words: "今天的进度条可以慢一点。" },
-            { level: "小吉", yi: "吃点甜的", ji: "空腹出门", words: "低血糖的丁香鱼会变成小咸鱼。" },
-            { level: "小吉", yi: "伸个懒腰", ji: "久坐不动", words: "起来走两步，好运才追得上你。" },
-            { level: "吉", yi: "发呆五分钟", ji: "自我怀疑", words: "平平常常的一天，也有人在一直关注你。" },
-            { level: "吉", yi: "照照镜子", ji: "说自己不好看", words: "镜子里的人今天也很好看。" }
-        ];
+        // 转盘 10 格，概率 = 格数 / 10：奶茶 20%、点歌 20%、伤心八卦 30%、开心八卦 30%；同类不相邻
+        const SLICES = ["happy", "milktea", "sad", "happy", "song", "sad", "happy", "milktea", "sad", "song"];
+        const SLICE_ANGLE = 360 / SLICES.length;
+        const SLICE_COLORS = ["#ff5c9d", "#ff9cc7"];
 
-        // 本机存储：今日签 { date, index, bonusId }，兑换券 { unlocked, used: [] }
-        const FORTUNE_KEY = "dxy_fortune_today";
-        const COUPON_KEY = "dxy_coupons";
+        // 本机存储：今日抽奖 { date, slice }，兑换券 [{ id, kind, date, used }]
+        const LOTTERY_KEY = "dxy_lottery";
+        const WALLET_KEY = "dxy_wallet";
 
-        const drawButton = document.getElementById("drawButton");
-        const fortuneCard = document.getElementById("fortuneCard");
+        const wheel = document.getElementById("wheel");
+        const spinButton = document.getElementById("spinButton");
+        const resultBox = document.getElementById("lotteryResult");
         const couponList = document.getElementById("coupons");
         const modal = document.getElementById("couponModal");
 
@@ -614,96 +588,110 @@
             return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
         }
 
-        let couponState = loadJSON(COUPON_KEY, { unlocked: INITIAL_UNLOCKED, used: [] });
-
-        // ---------- 今日运势 ----------
-        function showDate() {
-            const d = new Date();
-            const week = "日一二三四五六"[d.getDay()];
-            document.getElementById("fortuneDate").textContent = `${d.getMonth() + 1} 月 ${d.getDate()} 日 · 星期${week}`;
+        function dateLabel(key) {
+            const [, month, day] = key.split("-");
+            return `${month} 月 ${day} 日获得`;
         }
 
-        function renderFortune(record) {
-            const fortune = FORTUNES[record.index];
-            const level = document.getElementById("fortuneLevel");
-            level.textContent = fortune.level;
-            level.className = `fortune-level level-${fortune.level}`;
-            document.getElementById("fortuneYi").textContent = fortune.yi;
-            document.getElementById("fortuneJi").textContent = fortune.ji;
-            document.getElementById("fortuneWords").textContent = fortune.words;
+        let wallet = loadJSON(WALLET_KEY, []);
+        let rotation = 0;
 
-            const bonus = COUPONS.find((coupon) => coupon.id === record.bonusId);
-            document.getElementById("fortuneBonus").textContent = bonus
-                ? `🎁 解锁新券：「${bonus.title}」，就在下面～`
-                : (fortune.level === "大吉" ? "🎁 兑换券已经全部解锁啦，好运加倍！" : "");
-
-            drawButton.style.display = "none";
-            fortuneCard.classList.add("show");
+        // ---------- 转盘 ----------
+        function buildWheel() {
+            const stops = SLICES.map((_, i) =>
+                `${SLICE_COLORS[i % 2]} ${i * SLICE_ANGLE}deg ${(i + 1) * SLICE_ANGLE}deg`);
+            wheel.style.background = `conic-gradient(${stops.join(", ")})`;
+            SLICES.forEach((_, i) => {
+                const label = document.createElement("div");
+                label.className = "slice-label";
+                label.style.transform = `rotate(${i * SLICE_ANGLE + SLICE_ANGLE / 2}deg)`;
+                label.innerHTML = "<span>?</span>";
+                wheel.appendChild(label);
+            });
         }
 
-        function drawFortune() {
-            // 第一次抽签必中大吉，让她马上体验到解锁兑换券
-            const isFirstDraw = localStorage.getItem(FORTUNE_KEY) === null;
-            const pool = isFirstDraw
-                ? FORTUNES.map((_, i) => i).filter((i) => FORTUNES[i].level === "大吉")
-                : FORTUNES.map((_, i) => i);
-            const index = pool[Math.floor(Math.random() * pool.length)];
-
-            let bonusId = null;
-            if (FORTUNES[index].level === "大吉" && couponState.unlocked < COUPONS.length) {
-                bonusId = COUPONS[couponState.unlocked].id;
-                couponState.unlocked++;
-                saveJSON(COUPON_KEY, couponState);
-            }
-
-            const record = { date: todayKey(), index, bonusId };
-            saveJSON(FORTUNE_KEY, record);
-            return record;
+        function revealSlice(index) {
+            const label = wheel.children[index];
+            label.classList.add("revealed");
+            label.firstChild.textContent = PRIZES[SLICES[index]].short;
         }
 
-        drawButton.addEventListener("click", () => {
-            if (drawButton.classList.contains("shaking")) return;
-            drawButton.classList.add("shaking");
-            setTimeout(() => {
-                const record = drawFortune();
-                renderFortune(record);
-                renderCoupons(record.bonusId);
-            }, 1200);
+        // 让第 index 格的中心对准顶部指针
+        function rotationFor(index, extraTurns) {
+            const center = index * SLICE_ANGLE + SLICE_ANGLE / 2;
+            const jitter = (Math.random() - 0.5) * SLICE_ANGLE * 0.6;
+            const target = ((-center - rotation) % 360 + 360) % 360;
+            return rotation + extraTurns * 360 + target + jitter;
+        }
+
+        function showResult(kind, isToday) {
+            const prize = PRIZES[kind];
+            resultBox.innerHTML = `<strong>${isToday ? "🎉 抽中了" : "今天抽中了"} ${prize.icon} ${prize.title}</strong><small>已经放进下面的兑换券里啦，明天再来领新的抽奖券～</small>`;
+            resultBox.classList.add("show");
+        }
+
+        function setTicketUsed() {
+            document.getElementById("ticket").classList.add("empty");
+            document.getElementById("ticketCount").textContent = "× 0";
+            spinButton.disabled = true;
+            spinButton.textContent = "明天见";
+        }
+
+        spinButton.addEventListener("click", () => {
+            if (spinButton.disabled) return;
+            spinButton.disabled = true;
+
+            const index = Math.floor(Math.random() * SLICES.length);
+            const kind = SLICES[index];
+            const today = todayKey();
+            // 先记下结果，转到一半关掉页面也不会丢券或重抽
+            saveJSON(LOTTERY_KEY, { date: today, slice: index });
+            const coupon = { id: Date.now(), kind, date: today, used: false };
+            wallet.unshift(coupon);
+            saveJSON(WALLET_KEY, wallet);
+
+            rotation = rotationFor(index, 6);
+            wheel.style.transform = `rotate(${rotation}deg)`;
+            wheel.addEventListener("transitionend", function onStop() {
+                wheel.removeEventListener("transitionend", onStop);
+                revealSlice(index);
+                setTicketUsed();
+                showResult(kind, true);
+                renderCoupons(coupon.id);
+            });
         });
 
-        // ---------- 兑换券 ----------
+        // ---------- 我的兑换券 ----------
         function renderCoupons(freshId = null) {
             couponList.innerHTML = "";
-            COUPONS.forEach((coupon, i) => {
-                const locked = i >= couponState.unlocked;
-                const used = couponState.used.includes(coupon.id);
+            if (wallet.length === 0) {
+                couponList.innerHTML = `<div class="coupons-empty">还没有兑换券，快去转盘试试手气吧～</div>`;
+                return;
+            }
+            wallet.forEach((coupon) => {
+                const prize = PRIZES[coupon.kind];
                 const item = document.createElement("button");
                 item.type = "button";
-                item.className = "coupon" + (locked ? " locked" : "") + (used ? " used" : "") + (coupon.id === freshId ? " fresh" : "");
-                item.innerHTML = locked
-                    ? `<span class="coupon-icon">🔒</span><span><div class="coupon-title">神秘兑换券</div><div class="coupon-desc">抽到大吉即可解锁</div></span>`
-                    : `<span class="coupon-icon">${coupon.icon}</span><span><div class="coupon-title">${coupon.title}</div><div class="coupon-desc">${coupon.desc}</div></span>`;
-                if (locked) {
-                    item.disabled = true;
-                } else {
-                    item.addEventListener("click", () => openCoupon(coupon, used));
-                }
+                item.className = "coupon" + (coupon.used ? " used" : "") + (coupon.id === freshId ? " fresh" : "");
+                item.innerHTML = `<span class="coupon-icon">${prize.icon}</span><span><div class="coupon-title">${prize.title}</div><div class="coupon-desc">${prize.desc}</div><div class="coupon-date">${dateLabel(coupon.date)}</div></span>`;
+                item.addEventListener("click", () => openCoupon(coupon));
                 couponList.appendChild(item);
             });
         }
 
         let activeCoupon = null;
 
-        function openCoupon(coupon, used) {
+        function openCoupon(coupon) {
+            const prize = PRIZES[coupon.kind];
             activeCoupon = coupon;
-            document.getElementById("modalIcon").textContent = coupon.icon;
-            document.getElementById("modalTitle").textContent = coupon.title;
-            document.getElementById("modalDesc").textContent = coupon.desc;
-            document.getElementById("modalTip").textContent = used
+            document.getElementById("modalIcon").textContent = prize.icon;
+            document.getElementById("modalTitle").textContent = prize.title;
+            document.getElementById("modalDesc").textContent = prize.desc;
+            document.getElementById("modalTip").textContent = coupon.used
                 ? "这张券已经兑换过啦，金博说到做到 ✓"
                 : "📸 截图发给金博，就能兑换啦";
-            document.getElementById("modalRedeem").style.display = used ? "none" : "";
-            document.getElementById("modalClose").textContent = used ? "好的" : "先留着";
+            document.getElementById("modalRedeem").style.display = coupon.used ? "none" : "";
+            document.getElementById("modalClose").textContent = coupon.used ? "好的" : "先留着";
             modal.classList.add("show");
         }
 
@@ -717,19 +705,25 @@
             if (event.target === modal) closeModal();
         });
         document.getElementById("modalRedeem").addEventListener("click", () => {
-            if (activeCoupon && !couponState.used.includes(activeCoupon.id)) {
-                couponState.used.push(activeCoupon.id);
-                saveJSON(COUPON_KEY, couponState);
+            if (activeCoupon) {
+                activeCoupon.used = true;
+                saveJSON(WALLET_KEY, wallet);
             }
             closeModal();
             renderCoupons();
         });
 
         // ---------- 初始化 ----------
-        showDate();
-        const todayRecord = loadJSON(FORTUNE_KEY, null);
+        buildWheel();
+        const todayRecord = loadJSON(LOTTERY_KEY, null);
         if (todayRecord && todayRecord.date === todayKey()) {
-            renderFortune(todayRecord);
+            // 今天已经抽过：转盘直接停在结果上
+            wheel.style.transition = "none";
+            rotation = rotationFor(todayRecord.slice, 0);
+            wheel.style.transform = `rotate(${rotation}deg)`;
+            revealSlice(todayRecord.slice);
+            setTicketUsed();
+            showResult(SLICES[todayRecord.slice], false);
         }
         renderCoupons();
     </script>
