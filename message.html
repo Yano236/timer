@@ -179,6 +179,13 @@
             font-size: 0.9rem;
         }
 
+        .status small {
+            display: block;
+            margin-top: 4px;
+            color: #b88aa1;
+            font-size: 0.75rem;
+        }
+
         /* 递出去之后 */
         .delivered {
             display: none;
@@ -310,6 +317,7 @@
         const SERVERCHAN_SENDKEY = "SCT435232TKbYRdlpIBUaWxgdyUC6uNN7c";
         const WEB3FORMS_ACCESS_KEY = "dc95fc62-505b-4121-a9fb-6642bc9952bc";
         const SEND_TIMEOUT_MS = 10000;
+        const PAGE_VERSION = "2026-10-09b"; // 失败提示里显示，便于判断手机是否加载了最新版
         const DRAFT_KEY = "note_draft";
 
         const form = document.getElementById("noteForm");
@@ -341,6 +349,27 @@
             } finally {
                 clearTimeout(timer);
             }
+        }
+
+        // 任意一个成功就 resolve，全部失败才 reject（等价于 Promise.any，兼容不支持它的老浏览器）
+        function firstSuccess(promises) {
+            return new Promise((resolve, reject) => {
+                const errors = [];
+                let pending = promises.length;
+                promises.forEach((promise, index) => {
+                    promise.then(resolve, (error) => {
+                        errors[index] = error;
+                        if (--pending === 0) reject(errors);
+                    });
+                });
+            });
+        }
+
+        function describeError(error) {
+            if (!error) return "未知错误";
+            if (error.name === "AbortError") return "超时";
+            if (error.name === "TypeError") return "网络不通";
+            return error.message || String(error);
         }
 
         async function sendToWechat(message) {
@@ -382,7 +411,7 @@
                 // 隐藏字段被勾上说明是机器人：假装成功，两路都不发
                 // 否则任意一路成功就算送达，另一路继续在后台发送
                 if (!form.botcheck.checked) {
-                    await Promise.any([sendToWechat(message), sendToEmail(message)]);
+                    await firstSuccess([sendToWechat(message), sendToEmail(message)]);
                 }
 
                 localStorage.removeItem(DRAFT_KEY);
@@ -391,8 +420,12 @@
                     form.style.display = "none";
                     delivered.classList.add("show");
                 }, 600);
-            } catch (error) {
+            } catch (errors) {
+                const [wechatError, emailError] = Array.isArray(errors) ? errors : [errors, errors];
                 statusText.textContent = "纸条好像没递出去，内容已经帮你保存好了，稍后再试一次吧";
+                const detail = document.createElement("small");
+                detail.textContent = `微信：${describeError(wechatError)} ｜ 邮件：${describeError(emailError)} ｜ 版本 ${PAGE_VERSION}`;
+                statusText.appendChild(detail);
             } finally {
                 sendButton.disabled = false;
                 sendButton.textContent = "折好，递出去";
