@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>今日运势 | Always Following dxy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+
+        :root {
+            --primary: #ff3b8d;
+            --secondary: #ff8cc6;
+            --dark: #6d0039;
+            --light: #fff9fb;
+            --nav-height: 70px;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ffd8e9, #ffeef5);
+            min-height: 100vh;
+            color: #333;
+            padding-top: var(--nav-height);
+        }
+
+        /* 导航栏样式（与首页一致） */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: var(--dark);
+        }
+
+        .logo-img {
+            height: 45px;
+            width: auto;
+            border-radius: 8px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 500;
+            color: var(--dark);
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* 页面主体 */
+        .page {
+            width: min(100%, 760px);
+            margin: 0 auto;
+            padding: 32px 20px 48px;
+        }
+
+        .section-title {
+            color: var(--dark);
+            font-size: 1.45rem;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .section-hint {
+            color: #a0607f;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* 今日运势 */
+        .fortune {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 44px;
+        }
+
+        .fortune-date {
+            color: #a0607f;
+            font-size: 0.9rem;
+            margin-bottom: 18px;
+        }
+
+        /* 签筒 */
+        .draw-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--dark);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .tube {
+            position: relative;
+            width: 96px;
+            height: 128px;
+            margin-top: 34px;
+            border-radius: 14px 14px 22px 22px;
+            background: linear-gradient(90deg, #c2185b, #ff5c9d 45%, #c2185b);
+            box-shadow: 0 14px 28px rgba(109, 0, 57, 0.25);
+            transform-origin: 50% 90%;
+        }
+
+        .tube::after {
+            content: "签";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #fff3d6;
+            color: #c2185b;
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 44px;
+            text-align: center;
+        }
+
+        .stick {
+            position: absolute;
+            bottom: 100%;
+            width: 10px;
+            height: 46px;
+            border-radius: 4px 4px 0 0;
+            background: #f3c98b;
+        }
+
+        .stick:nth-child(1) { left: 22px; height: 40px; transform: rotate(-8deg); }
+        .stick:nth-child(2) { left: 43px; height: 50px; }
+        .stick:nth-child(3) { left: 64px; height: 38px; transform: rotate(8deg); }
+
+        .draw-button.shaking .tube {
+            animation: shake 0.24s ease-in-out 5;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-12deg); }
+            75% { transform: rotate(12deg); }
+        }
+
+        /* 签文 */
+        .fortune-card {
+            display: none;
+            width: min(100%, 420px);
+            padding: 26px 24px 22px;
+            border-radius: 18px;
+            background: #fffdf8;
+            box-shadow: 0 18px 40px rgba(109, 0, 57, 0.14);
+            text-align: center;
+        }
+
+        .fortune-card.show {
+            display: block;
+            animation: pop 0.5s ease;
+        }
+
+        .fortune-level {
+            display: inline-block;
+            padding: 6px 22px;
+            border-radius: 30px;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            margin-bottom: 18px;
+        }
+
+        .level-大吉 { background: linear-gradient(135deg, #ff3b8d, #ff8a3d); }
+        .level-中吉 { background: #ff5c9d; }
+        .level-小吉 { background: #f48fb1; }
+        .level-吉 { background: #c48da7; }
+
+        .fortune-rows {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 8px 12px;
+            text-align: left;
+            margin-bottom: 16px;
+        }
+
+        .fortune-tag {
+            padding: 2px 10px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            height: fit-content;
+        }
+
+        .tag-yi { background: #e3f6ea; color: #23864b; }
+        .tag-ji { background: #fde4e4; color: #c0392b; }
+
+        .fortune-words {
+            color: var(--dark);
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+
+        .fortune-bonus {
+            margin-top: 16px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: #fff0f6;
+            color: #c0306f;
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+        .fortune-bonus:empty {
+            display: none;
+        }
+
+        .fortune-next {
+            margin-top: 14px;
+            color: #b88aa1;
+            font-size: 0.82rem;
+        }
+
+        /* 兑换券 */
+        .coupons {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .coupon {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 96px;
+            padding: 14px 16px 14px 18px;
+            border: none;
+            border-radius: 14px;
+            background-color: white;
+            box-shadow: 0 8px 20px rgba(109, 0, 57, 0.1);
+            border-left: 6px solid var(--primary);
+            text-align: left;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .coupon:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(109, 0, 57, 0.16);
+        }
+
+        .coupon.fresh {
+            animation: glow 1.4s ease 2;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 8px 20px rgba(109, 0, 57, 0.1); }
+            50% { box-shadow: 0 0 0 4px rgba(255, 59, 141, 0.45), 0 12px 26px rgba(255, 59, 141, 0.35); }
+        }
+
+        .coupon-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .coupon-title {
+            color: var(--dark);
+            font-weight: 700;
+            font-size: 1.02rem;
+            margin-bottom: 4px;
+        }
+
+        .coupon-desc {
+            color: #8a5a72;
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .coupon.locked {
+            border-left-color: #d9c2cd;
+            background-color: rgba(255, 255, 255, 0.55);
+            cursor: default;
+        }
+
+        .coupon.locked:hover {
+            transform: none;
+            box-shadow: 0 8px 20px rgba(109, 0, 57, 0.1);
+        }
+
+        .coupon.locked .coupon-title,
+        .coupon.locked .coupon-desc {
+            color: #b9a3ae;
+        }
+
+        .coupon.used {
+            border-left-color: #c9b3be;
+            background-color: #f7f1f4;
+        }
+
+        .coupon.used .coupon-icon,
+        .coupon.used .coupon-title,
+        .coupon.used .coupon-desc {
+            opacity: 0.45;
+        }
+
+        .coupon.used::after {
+            content: "已兑换";
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            padding: 2px 10px;
+            border: 2px solid #c0306f;
+            border-radius: 8px;
+            color: #c0306f;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transform: translateY(-50%) rotate(-14deg);
+            opacity: 0.8;
+        }
+
+        /* 兑换弹窗 */
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(109, 0, 57, 0.35);
+            z-index: 2000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-card {
+            width: min(100%, 360px);
+            padding: 28px 24px 22px;
+            border-radius: 20px;
+            background: white;
+            text-align: center;
+            animation: pop 0.35s ease;
+        }
+
+        .modal-icon {
+            font-size: 3.4rem;
+            margin-bottom: 8px;
+        }
+
+        .modal-title {
+            color: var(--dark);
+            font-size: 1.4rem;
+            margin-bottom: 6px;
+        }
+
+        .modal-desc {
+            color: #8a5a72;
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+
+        .modal-tip {
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: #fff0f6;
+            color: #c0306f;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .pill-button {
+            padding: 10px 22px;
+            border: none;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .pill-button.primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 8px 18px rgba(255, 59, 141, 0.3);
+        }
+
+        .pill-button.ghost {
+            background: #f5eef2;
+            color: var(--dark);
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.85); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 响应式设计：手机端 5 个入口排成 3 + 2，第二行居中 */
+        @media (max-width: 768px) {
+            :root {
+                --nav-height: 142px;
+            }
+
+            .navbar {
+                align-items: stretch;
+                justify-content: center;
+                flex-direction: column;
+                gap: 8px;
+                padding: 10px 12px 12px;
+            }
+
+            .logo {
+                justify-content: center;
+                font-size: 0.95rem;
+                gap: 8px;
+            }
+
+            .logo-img {
+                height: 32px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+                width: min(100%, 430px);
+                margin: 0 auto;
+            }
+
+            .nav-link {
+                flex: 0 1 calc((100% - 16px) / 3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 34px;
+                padding: 7px 4px;
+                border-radius: 12px;
+                font-size: 0.82rem;
+                line-height: 1.15;
+                white-space: nowrap;
+            }
+
+            .page {
+                padding: 24px 14px 40px;
+            }
+
+            .coupons {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <img src="./images2/logo.png" alt="Logo" class="logo-img">
+            <span>Always Following dxy</span>
+        </div>
+        <div class="nav-links">
+            <a href="index.html?skipIntro=1" class="nav-link">首页</a>
+            <a href="game.html" class="nav-link">互动小游戏</a>
+            <a href="heart.html" class="nav-link">瞅瞅金博的心脏</a>
+            <a href="message.html" class="nav-link">给金博递纸条</a>
+            <a href="fortune.html" class="nav-link active">今日运势</a>
+        </div>
+    </nav>
+
+    <main class="page">
+        <section class="fortune">
+            <h1 class="section-title">dxy 的今日运势 🔮</h1>
+            <p class="fortune-date" id="fortuneDate"></p>
+
+            <button type="button" class="draw-button" id="drawButton">
+                <span class="tube" aria-hidden="true">
+                    <span class="stick"></span><span class="stick"></span><span class="stick"></span>
+                </span>
+                <span>摇一摇，抽今日签</span>
+            </button>
+
+            <article class="fortune-card" id="fortuneCard" aria-live="polite">
+                <div class="fortune-level" id="fortuneLevel"></div>
+                <div class="fortune-rows">
+                    <span class="fortune-tag tag-yi">宜</span><span id="fortuneYi"></span>
+                    <span class="fortune-tag tag-ji">忌</span><span id="fortuneJi"></span>
+                </div>
+                <p class="fortune-words" id="fortuneWords"></p>
+                <div class="fortune-bonus" id="fortuneBonus"></div>
+                <p class="fortune-next">每天只能抽一次，明天再来看看吧</p>
+            </article>
+        </section>
+
+        <section>
+            <h2 class="section-title">dxy 专属兑换券 🎟️</h2>
+            <p class="section-hint">点开想用的券，截图发给金博就能兑换；抽到大吉还能解锁新券</p>
+            <div class="coupons" id="coupons"></div>
+        </section>
+    </main>
+
+    <div class="modal" id="couponModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-card">
+            <div class="modal-icon" id="modalIcon"></div>
+            <h3 class="modal-title" id="modalTitle"></h3>
+            <p class="modal-desc" id="modalDesc"></p>
+            <p class="modal-tip" id="modalTip"></p>
+            <div class="modal-actions" id="modalActions">
+                <button type="button" class="pill-button ghost" id="modalClose">先留着</button>
+                <button type="button" class="pill-button primary" id="modalRedeem">我已兑换</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 兑换券：前 INITIAL_UNLOCKED 张开局可用，其余按顺序在抽到大吉时解锁
+        const COUPONS = [
+            { id: "milktea", icon: "🧋", title: "奶茶券", desc: "金博请喝奶茶一杯，甜度随你挑" },
+            { id: "chat", icon: "📞", title: "陪聊券", desc: "随时召唤金博陪聊，聊到你困为止" },
+            { id: "song", icon: "🎤", title: "点歌券", desc: "指定一首歌，金博认真唱给你听" },
+            { id: "food", icon: "🍲", title: "投喂券", desc: "想吃什么说一声，金博负责安排" },
+            { id: "walk", icon: "🛍️", title: "陪逛券", desc: "陪逛一次，负责拎包和拍好看的照片" },
+            { id: "errand", icon: "🏃", title: "跑腿券", desc: "金博跑腿一次，使命必达" },
+            { id: "sorry", icon: "🙇", title: "免生气券", desc: "金博惹你不开心时使用，立刻认错哄好" },
+            { id: "pinch", icon: "🤏", title: "反向捏脸券", desc: "金博的脸给你捏一次，不许喊疼" }
+        ];
+        const INITIAL_UNLOCKED = 3;
+
+        const FORTUNES = [
+            { level: "大吉", yi: "喝奶茶、晒太阳", ji: "委屈自己", words: "今天的好运多到溢出来，分你一张券。" },
+            { level: "大吉", yi: "出门走走、拍好看的照片", ji: "宅在家发呆", words: "南京第一美少女今日气场全开。" },
+            { level: "大吉", yi: "吃顿好的", ji: "减肥", words: "吃饱了才有力气可爱。" },
+            { level: "中吉", yi: "早点睡", ji: "熬夜刷手机", words: "睡饱的萌萌圆脸最好捏。" },
+            { level: "中吉", yi: "听喜欢的歌", ji: "想太多", words: "烦心事交给明天的自己。" },
+            { level: "中吉", yi: "多喝热水", ji: "喝冰的", words: "金博叮嘱的，不许嫌啰嗦。" },
+            { level: "中吉", yi: "找人聊天", ji: "一个人生闷气", words: "有什么不开心，可以递张纸条给金博。" },
+            { level: "小吉", yi: "慢慢来", ji: "着急", words: "今天的进度条可以慢一点。" },
+            { level: "小吉", yi: "吃点甜的", ji: "空腹出门", words: "低血糖的丁香鱼会变成小咸鱼。" },
+            { level: "小吉", yi: "伸个懒腰", ji: "久坐不动", words: "起来走两步，好运才追得上你。" },
+            { level: "吉", yi: "发呆五分钟", ji: "自我怀疑", words: "平平常常的一天，也有人在一直关注你。" },
+            { level: "吉", yi: "照照镜子", ji: "说自己不好看", words: "镜子里的人今天也很好看。" }
+        ];
+
+        // 本机存储：今日签 { date, index, bonusId }，兑换券 { unlocked, used: [] }
+        const FORTUNE_KEY = "dxy_fortune_today";
+        const COUPON_KEY = "dxy_coupons";
+
+        const drawButton = document.getElementById("drawButton");
+        const fortuneCard = document.getElementById("fortuneCard");
+        const couponList = document.getElementById("coupons");
+        const modal = document.getElementById("couponModal");
+
+        function loadJSON(key, fallback) {
+            try {
+                return JSON.parse(localStorage.getItem(key)) ?? fallback;
+            } catch {
+                return fallback;
+            }
+        }
+
+        function saveJSON(key, value) {
+            localStorage.setItem(key, JSON.stringify(value));
+        }
+
+        function todayKey() {
+            const d = new Date();
+            return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+        }
+
+        let couponState = loadJSON(COUPON_KEY, { unlocked: INITIAL_UNLOCKED, used: [] });
+
+        // ---------- 今日运势 ----------
+        function showDate() {
+            const d = new Date();
+            const week = "日一二三四五六"[d.getDay()];
+            document.getElementById("fortuneDate").textContent = `${d.getMonth() + 1} 月 ${d.getDate()} 日 · 星期${week}`;
+        }
+
+        function renderFortune(record) {
+            const fortune = FORTUNES[record.index];
+            const level = document.getElementById("fortuneLevel");
+            level.textContent = fortune.level;
+            level.className = `fortune-level level-${fortune.level}`;
+            document.getElementById("fortuneYi").textContent = fortune.yi;
+            document.getElementById("fortuneJi").textContent = fortune.ji;
+            document.getElementById("fortuneWords").textContent = fortune.words;
+
+            const bonus = COUPONS.find((coupon) => coupon.id === record.bonusId);
+            document.getElementById("fortuneBonus").textContent = bonus
+                ? `🎁 解锁新券：「${bonus.title}」，就在下面～`
+                : (fortune.level === "大吉" ? "🎁 兑换券已经全部解锁啦，好运加倍！" : "");
+
+            drawButton.style.display = "none";
+            fortuneCard.classList.add("show");
+        }
+
+        function drawFortune() {
+            // 第一次抽签必中大吉，让她马上体验到解锁兑换券
+            const isFirstDraw = localStorage.getItem(FORTUNE_KEY) === null;
+            const pool = isFirstDraw
+                ? FORTUNES.map((_, i) => i).filter((i) => FORTUNES[i].level === "大吉")
+                : FORTUNES.map((_, i) => i);
+            const index = pool[Math.floor(Math.random() * pool.length)];
+
+            let bonusId = null;
+            if (FORTUNES[index].level === "大吉" && couponState.unlocked < COUPONS.length) {
+                bonusId = COUPONS[couponState.unlocked].id;
+                couponState.unlocked++;
+                saveJSON(COUPON_KEY, couponState);
+            }
+
+            const record = { date: todayKey(), index, bonusId };
+            saveJSON(FORTUNE_KEY, record);
+            return record;
+        }
+
+        drawButton.addEventListener("click", () => {
+            if (drawButton.classList.contains("shaking")) return;
+            drawButton.classList.add("shaking");
+            setTimeout(() => {
+                const record = drawFortune();
+                renderFortune(record);
+                renderCoupons(record.bonusId);
+            }, 1200);
+        });
+
+        // ---------- 兑换券 ----------
+        function renderCoupons(freshId = null) {
+            couponList.innerHTML = "";
+            COUPONS.forEach((coupon, i) => {
+                const locked = i >= couponState.unlocked;
+                const used = couponState.used.includes(coupon.id);
+                const item = document.createElement("button");
+                item.type = "button";
+                item.className = "coupon" + (locked ? " locked" : "") + (used ? " used" : "") + (coupon.id === freshId ? " fresh" : "");
+                item.innerHTML = locked
+                    ? `<span class="coupon-icon">🔒</span><span><div class="coupon-title">神秘兑换券</div><div class="coupon-desc">抽到大吉即可解锁</div></span>`
+                    : `<span class="coupon-icon">${coupon.icon}</span><span><div class="coupon-title">${coupon.title}</div><div class="coupon-desc">${coupon.desc}</div></span>`;
+                if (locked) {
+                    item.disabled = true;
+                } else {
+                    item.addEventListener("click", () => openCoupon(coupon, used));
+                }
+                couponList.appendChild(item);
+            });
+        }
+
+        let activeCoupon = null;
+
+        function openCoupon(coupon, used) {
+            activeCoupon = coupon;
+            document.getElementById("modalIcon").textContent = coupon.icon;
+            document.getElementById("modalTitle").textContent = coupon.title;
+            document.getElementById("modalDesc").textContent = coupon.desc;
+            document.getElementById("modalTip").textContent = used
+                ? "这张券已经兑换过啦，金博说到做到 ✓"
+                : "📸 截图发给金博，就能兑换啦";
+            document.getElementById("modalRedeem").style.display = used ? "none" : "";
+            document.getElementById("modalClose").textContent = used ? "好的" : "先留着";
+            modal.classList.add("show");
+        }
+
+        function closeModal() {
+            modal.classList.remove("show");
+            activeCoupon = null;
+        }
+
+        document.getElementById("modalClose").addEventListener("click", closeModal);
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) closeModal();
+        });
+        document.getElementById("modalRedeem").addEventListener("click", () => {
+            if (activeCoupon && !couponState.used.includes(activeCoupon.id)) {
+                couponState.used.push(activeCoupon.id);
+                saveJSON(COUPON_KEY, couponState);
+            }
+            closeModal();
+            renderCoupons();
+        });
+
+        // ---------- 初始化 ----------
+        showDate();
+        const todayRecord = loadJSON(FORTUNE_KEY, null);
+        if (todayRecord && todayRecord.date === todayKey()) {
+            renderFortune(todayRecord);
+        }
+        renderCoupons();
+    </script>
+</body>
+
+</html>

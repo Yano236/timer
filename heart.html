@@ -77,11 +77,14 @@
       background: var(--primary);
       color: white;
     }
+    /* 手机端：logo 一行，5 个入口排成 3 + 2，第二行居中 */
     @media (max-width: 768px) {
-      .navbar { padding: 0 15px; }
-      .nav-links { gap: 8px; }
-      .nav-link { padding: 6px 10px; font-size: 0.9rem; }
-      .logo span { display: none; }
+      :root { --nav-height: 142px; }
+      .navbar { flex-direction: column; align-items: stretch; justify-content: center; gap: 8px; padding: 10px 12px 12px; }
+      .logo { justify-content: center; font-size: 0.95rem; gap: 8px; }
+      .logo-img { height: 32px; }
+      .nav-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: min(100%, 430px); margin: 0 auto; }
+      .nav-link { flex: 0 1 calc((100% - 16px) / 3); display: flex; align-items: center; justify-content: center; min-height: 34px; padding: 7px 8px; border-radius: 12px; font-size: 0.82rem; white-space: nowrap; }
     }
     #loading-screen { z-index: 1500; }
     .overlay-div { z-index: 1000; }
@@ -99,6 +102,8 @@
       <a class="nav-link" href="index.html?skipIntro=1">首页</a>
       <a class="nav-link" href="game.html">互动小游戏</a>
       <a class="nav-link active" href="heart.html">瞅瞅金博的心脏</a>
+      <a class="nav-link" href="message.html">给金博递纸条</a>
+      <a class="nav-link" href="fortune.html">今日运势</a>
     </nav>
   </header>
 
