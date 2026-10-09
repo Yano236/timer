@@ -556,7 +556,7 @@
             happy: { icon: "😆", title: "八卦券（开心的事）", short: "开心八卦", desc: "金博讲一件他开心的事，越详细越好" }
         };
 
-        // 转盘 10 格，概率 = 格数 / 10：奶茶 20%、点歌 20%、伤心八卦 30%、开心八卦 30%；同类不相邻
+        // 转盘 10 格，按天均匀落在某一格，概率 = 格数 / 10：奶茶 20%、点歌 20%、伤心八卦 30%、开心八卦 30%；同类不相邻
         const SLICES = ["happy", "milktea", "sad", "happy", "song", "sad", "happy", "milktea", "sad", "song"];
         const SLICE_ANGLE = 360 / SLICES.length;
         const SLICE_COLORS = ["#ff5c9d", "#ff9cc7"];
@@ -586,6 +586,17 @@
         function todayKey() {
             const d = new Date();
             return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+        }
+
+        // 每天转到哪一格由日期决定（FNV-1a 哈希），任何设备同一天结果相同，换设备 / 清数据重抽也没用
+        const DAILY_SALT = "dxy-lottery";
+        function dailySlice(dateKey) {
+            let hash = 0x811c9dc5;
+            for (const char of DAILY_SALT + dateKey) {
+                hash ^= char.codePointAt(0);
+                hash = Math.imul(hash, 0x01000193) >>> 0;
+            }
+            return hash % SLICES.length;
         }
 
         function dateLabel(key) {
@@ -641,14 +652,18 @@
             if (spinButton.disabled) return;
             spinButton.disabled = true;
 
-            const index = Math.floor(Math.random() * SLICES.length);
-            const kind = SLICES[index];
             const today = todayKey();
+            const index = dailySlice(today);
+            const kind = SLICES[index];
             // 先记下结果，转到一半关掉页面也不会丢券或重抽
             saveJSON(LOTTERY_KEY, { date: today, slice: index });
-            const coupon = { id: Date.now(), kind, date: today, used: false };
-            wallet.unshift(coupon);
-            saveJSON(WALLET_KEY, wallet);
+            // 每个日期最多一张券（只清了抽奖记录、没清券夹时不会重复入账）
+            let coupon = wallet.find((item) => item.date === today);
+            if (!coupon) {
+                coupon = { id: Date.now(), kind, date: today, used: false };
+                wallet.unshift(coupon);
+                saveJSON(WALLET_KEY, wallet);
+            }
 
             rotation = rotationFor(index, 6);
             wheel.style.transform = `rotate(${rotation}deg)`;
